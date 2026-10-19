@@ -8,6 +8,14 @@
 
 > 仅用于学习和娱乐，不涉及任何真钱。
 
+**👉 [在线试玩](https://songyancui.github.io/poker-coach/)（手机、电脑浏览器都能直接打开）　·　[下载 Android App](https://github.com/songyancui/poker-coach/releases/latest)**
+
+| 牌桌 | 教练建议 | 概率手算 |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/1-table.png" width="240"> | <img src="docs/screenshots/2-coach.png" width="240"> | <img src="docs/screenshots/3-probability.png" width="240"> |
+| **胜率模拟明细** | **复盘** | **速算练习与口诀** |
+| <img src="docs/screenshots/4-equity.png" width="240"> | <img src="docs/screenshots/5-review.png" width="240"> | <img src="docs/screenshots/6-learn.png" width="240"> |
+
 ## 功能
 
 **牌局**
@@ -34,9 +42,10 @@
 
 ## 快速开始
 
-### 网页版（电脑）
+### 网页版
 
-直接用浏览器打开 `index.html` 即可打牌。
+- 在线：https://songyancui.github.io/poker-coach/
+- 本地：下载源码后用浏览器直接打开 `index.html`
 
 需要“问教练”时，用自带的本地服务打开：
 
@@ -66,6 +75,31 @@ JAVA_HOME=/path/to/jdk21 ANDROID_HOME=/path/to/android-sdk ./build-apk.sh
 ```
 
 手机通过 USB 连接并开启 USB 调试时，脚本会自动安装到手机。
+
+#### 打正式签名版
+
+```bash
+./build-apk.sh release
+```
+
+需要先准备自己的签名密钥（不要提交到仓库），例如：
+
+```bash
+mkdir -p ~/.android-keys
+keytool -genkeypair -keystore ~/.android-keys/poker-coach-release.jks -alias poker-coach \
+  -keyalg RSA -keysize 4096 -validity 36500
+```
+
+再新建 `~/.android-keys/poker-coach.properties`：
+
+```properties
+storeFile=/Users/你的用户名/.android-keys/poker-coach-release.jks
+storePassword=你的密码
+keyAlias=poker-coach
+keyPassword=你的密码
+```
+
+也可以用环境变量 `POKER_KEYSTORE_PROPS` 指定这个文件的位置。
 
 ## 问教练（DeepSeek）
 
