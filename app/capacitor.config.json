@@ -1,0 +1,15 @@
+{
+  "appId": "com.pokercoach.app",
+  "appName": "德州教练",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#0f1512"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "initialViewportFitValueHint": "cover",
+      "style": "DARK"
+    }
+  }
+}

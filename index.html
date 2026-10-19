@@ -1,0 +1,1786 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0f1512">
+<title>德州教练</title>
+<style>
+:root{
+  --bg:#0f1512; --panel:#17201b; --panel2:#1e2a23; --line:#2b3a31; --text:#e7efe9; --muted:#93a59a;
+  --felt:#1f6b45; --felt2:#174f34; --rail:#3a2a1c; --gold:#e8c35a; --accent:#4cc38a;
+  --good:#3fbf7f; --ok:#e2b33c; --bad:#e2574c; --blue:#5aa7e8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+body{display:flex;flex-direction:column;height:100vh}
+button{font:inherit;cursor:pointer}
+.top{display:flex;align-items:center;gap:14px;padding:8px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap;flex:none}
+.brand{font-weight:700;font-size:16px;letter-spacing:.5px}
+.brand span{color:var(--gold)}
+.hdr{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.chip{white-space:nowrap;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:1px 10px;font-size:12px;color:var(--muted)}
+.chip b{color:var(--text);font-weight:600}
+.ctrls{display:flex;gap:10px;align-items:center;font-size:13px;color:var(--muted)}
+.ctrls select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+.wrap{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,1fr);gap:12px;padding:12px 14px}
+.left{display:flex;flex-direction:column;min-height:0;gap:10px}
+.tablewrap{position:relative;flex:1;min-height:330px;display:flex}
+.table{position:relative;flex:1}
+.sheet,.bnav{display:none}
+.gear{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;width:32px;height:30px;font-size:16px;line-height:1;padding:0}
+.gear:hover{color:var(--text)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.setrow:first-of-type{border-top:none}
+.setrow select,.setin{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit}
+.setin{width:100%;margin:6px 0}
+.setrow input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
+.mlog{font-size:12px;color:var(--muted)}
+.mlog b{color:var(--text);font-weight:600}
+.felt{position:absolute;inset:9% 5%;border-radius:999px;background:radial-gradient(ellipse at center,var(--felt) 0%,var(--felt2) 75%);border:12px solid var(--rail);box-shadow:inset 0 0 40px rgba(0,0,0,.45),0 8px 30px rgba(0,0,0,.5)}
+.center{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);text-align:center}
+.board{display:flex;gap:6px;justify-content:center;min-height:64px}
+.pot{margin-top:6px;font-weight:700;color:var(--gold)}
+.street{font-size:12px;color:#cfe3d6;opacity:.8}
+.seat{position:absolute;transform:translate(-50%,-50%);width:132px;text-align:center}
+.seat .box{background:rgba(15,21,18,.93);border:1px solid var(--line);border-radius:10px;padding:4px 8px;position:relative}
+.seat.turn .box{border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,195,90,.35)}
+.seat.folded{opacity:.42}
+.seat .nm{font-weight:700;font-size:13px}
+.seat .tag{font-size:11px;color:var(--muted);line-height:1.3}
+.seat .stk{font-size:13px;color:var(--gold)}
+.seat .cards{display:flex;gap:4px;justify-content:center;margin-bottom:3px;min-height:50px}
+.seat .last{font-size:12px;color:#cfe3d6;min-height:18px}
+.seat .win{color:var(--good);font-weight:700}
+.btnb{position:absolute;top:-9px;right:-9px;width:22px;height:22px;border-radius:50%;background:#fff;color:#111;font-size:11px;font-weight:800;line-height:22px}
+.posb{display:inline-block;font-size:10px;padding:0 5px;border-radius:4px;background:var(--panel2);color:var(--muted);margin-left:4px;vertical-align:1px}
+.betchip{position:absolute;transform:translate(-50%,-50%);background:rgba(0,0,0,.55);color:var(--gold);border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700;white-space:nowrap}
+.betchip:before{content:"●";color:#e05a4a;margin-right:4px}
+.card{width:44px;height:62px;border-radius:6px;background:#fbfbf8;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;box-shadow:0 2px 4px rgba(0,0,0,.4);line-height:1}
+.card .r{font-size:20px}.card .s{font-size:18px;margin-top:2px}
+.card.sm{width:34px;height:48px}.card.sm .r{font-size:15px}.card.sm .s{font-size:13px}
+.card.s0{color:#1a1a1a}.card.s1{color:#d0312d}.card.s2{color:#1d6fd1}.card.s3{color:#1f8a3c}
+.card.back{background:repeating-linear-gradient(45deg,#7b2e2e 0 6px,#923838 6px 12px);border:2px solid #fbfbf8}
+.card.hl{outline:3px solid var(--gold);outline-offset:-1px}
+.card.empty{background:rgba(255,255,255,.06);box-shadow:none;border:1px dashed rgba(255,255,255,.18)}
+.ic{display:inline-flex;gap:3px;vertical-align:middle}
+.mini{display:inline-block;padding:0 4px;border-radius:3px;background:#fbfbf8;font-weight:800;font-size:12px;line-height:18px}
+.mini.s0{color:#1a1a1a}.mini.s1{color:#d0312d}.mini.s2{color:#1d6fd1}.mini.s3{color:#1f8a3c}
+.actions{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;min-height:60px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;flex:none}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:8px;padding:8px 15px;font-weight:600}
+.btn:hover{border-color:var(--muted)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.fold{background:#3a1f1d;border-color:#5a2b27}
+.btn.call{background:#1d3347;border-color:#2b4a66}
+.btn.raise{background:#3b3216;border-color:#5f5021}
+.btn.go{background:var(--accent);color:#06210f;border-color:var(--accent)}
+.btn.rec{box-shadow:0 0 0 2px var(--gold)}
+.btn .k{opacity:.5;font-size:11px;margin-left:6px;font-weight:400}
+.btn.sm{padding:4px 10px;font-size:12px}
+.raisebox{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:250px}
+.raisebox input[type=range]{flex:1;min-width:110px;accent-color:var(--gold)}
+.raisebox input[type=number]{width:70px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px}
+.preset{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:3px 8px;font-size:12px}
+.preset:hover{color:var(--text)}
+.log{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 12px;height:108px;overflow:auto;font-size:12px;color:var(--muted);flex:none}
+.log div b{color:var(--text);font-weight:600}
+aside{background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;border-bottom:1px solid var(--line);flex:none}
+.tabs button{flex:1;background:none;border:none;color:var(--muted);padding:9px 4px;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--text);border-bottom-color:var(--gold)}
+.tabbody{padding:12px 14px;overflow:auto;flex:1;min-height:0}
+.sec{margin-bottom:14px}
+.sec h4{margin:0 0 6px;font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.5px}
+.kv{display:grid;grid-template-columns:78px 1fr;gap:4px 10px;font-size:13px}
+.kv .k{color:var(--muted)}
+.recbox{background:linear-gradient(135deg,#2a2a14,#1f2a1d);border:1px solid #5f5021;border-radius:10px;padding:10px 12px}
+.recbox .big{font-size:18px;font-weight:700;color:var(--gold)}
+.recbox ul{margin:6px 0 0;padding-left:18px}
+.recbox li{margin:3px 0}
+.evt{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.evt td{padding:3px 6px;border-top:1px solid rgba(255,255,255,.06)}
+.evt td:nth-child(2){text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.evt td:nth-child(3){color:var(--muted)}
+.evt tr.best td{color:var(--gold)}
+.concept{background:#172431;border:1px solid #2b4a66;border-radius:10px;padding:9px 12px}
+.concept b{color:var(--blue)}
+.concept p{margin:4px 0 0;font-size:13px;color:#cfdbe6}
+.tips{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(232,195,90,.25);font-size:13px}
+.tips div{margin:3px 0}
+.tips b{color:var(--gold)}
+.explain{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:0}
+.explain summary{cursor:pointer;padding:9px 12px;font-weight:600;font-size:13px;list-style:none}
+.explain summary::-webkit-details-marker{display:none}
+.explain summary:after{content:"▸";float:right;color:var(--muted)}
+.explain[open] summary:after{content:"▾"}
+.explain .step{padding:8px 12px;border-top:1px solid var(--line);font-size:13px}
+.explain .step>b{display:block;margin-bottom:4px;color:var(--blue)}
+.explain ul{margin:4px 0;padding-left:18px}
+.explain li{margin:2px 0;font-size:12px;color:#cbd8cf}
+.oppr{margin:4px 0}
+.oppr code{font-family:inherit;color:var(--gold);font-size:12px}
+.simbar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:6px 0 3px;background:var(--panel)}
+.simbar i{display:block}.simbar .w{background:var(--good)}.simbar .t{background:var(--ok)}.simbar .l{background:var(--bad)}
+.quiz{background:linear-gradient(135deg,#1c2836,#1a2620);border:1px solid #2b4a66;border-radius:10px;padding:10px 12px}
+.quiz .qq{font-size:14px;margin:4px 0 8px}
+.qtag{display:inline-block;font-size:11px;padding:0 6px;border-radius:4px;background:#2b4a66;color:#d6e8f7;margin-right:4px;vertical-align:1px}
+.qopts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.qopts button{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:9px 6px;font-size:14px;font-weight:600}
+.qopts button.right{border-color:var(--good);color:var(--good)}
+.qopts button.wrong{border-color:var(--bad);color:var(--bad)}
+.qopts button:disabled{cursor:default}
+.qexp{font-size:13px;margin-bottom:8px}
+.qexp b.g-good,.qexp b.g-bad{margin-right:4px}
+.fb{border-left:3px solid var(--line);background:var(--panel2);border-radius:6px;padding:7px 10px;margin-bottom:8px;font-size:13px}
+.fb.good{border-color:var(--good)}.fb.ok{border-color:var(--ok)}.fb.bad{border-color:var(--bad)}
+.fb .h{font-weight:600}
+.fb .sub{color:var(--muted);font-size:12px}
+.fb .rprob{margin-top:6px}.fb .rprob summary{cursor:pointer;font-size:12px;color:var(--blue)}
+.fb ul{margin:4px 0 0;padding-left:18px;color:#cbd8cf;font-size:12px}
+.g-good{color:var(--good)}.g-ok{color:var(--ok)}.g-bad{color:var(--bad)}
+.bar{height:8px;background:var(--panel2);border-radius:4px;overflow:hidden;position:relative;margin-top:6px}
+.bar i{position:absolute;top:0;bottom:0;left:0;background:var(--accent)}
+.bar em{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--bad)}
+.muted{color:var(--muted)} .small{font-size:11px}
+.think{background:var(--panel2);border-radius:10px;padding:10px 12px}
+.think ol{margin:6px 0;padding-left:20px}
+.guess{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
+.guess button{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:4px 10px;font-size:12px}
+.guess button.on{border-color:var(--gold);color:var(--gold)}
+.grid13{display:grid;grid-template-columns:repeat(13,1fr);gap:2px;font-size:10px}
+.grid13 div{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:3px;background:#26302a;color:#7d8c82;font-weight:600}
+.grid13 .t3{background:#b8862b;color:#1c1405}
+.grid13 .t2{background:#2f8a5a;color:#e9fff2}
+.grid13 .t1{background:#285a40;color:#cde6d6}
+.grid13 .me{outline:2px solid #fff;outline-offset:-1px}
+.posbtns{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.posbtns button,.filt button{background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:3px 8px;font-size:12px}
+.posbtns button.on,.filt button.on{color:var(--text);border-color:var(--gold)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px}
+.legend span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;background:var(--c)}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--panel2);border-radius:8px;padding:8px 10px}
+.stat .v{font-size:19px;font-weight:700}
+.stat .l{font-size:12px;color:var(--muted)}
+.lesson{background:var(--panel2);border-radius:8px;padding:9px 11px;margin-bottom:8px}
+.lesson b{color:var(--gold)}
+.lesson p{margin:4px 0 0;font-size:13px;color:#cbd8cf}
+.oppnote{font-size:12px;color:#cbd8cf;margin:5px 0;padding:6px 8px;background:var(--panel2);border-radius:6px}
+.oppnote b{color:var(--text)}
+.oppnote code{font-family:inherit;color:var(--gold)}
+.hlist{display:flex;flex-direction:column;gap:3px;max-height:170px;overflow:auto;margin-bottom:10px}
+.hrow{display:grid;grid-template-columns:42px 44px 1fr 64px 56px;gap:6px;align-items:center;background:var(--panel2);border:1px solid transparent;border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer}
+.hrow.on{border-color:var(--gold)}
+.hrow:hover{border-color:var(--line)}
+.filt{display:flex;gap:6px;margin-bottom:6px}
+.verdict{border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:13px}
+.verdict.v1{background:#163024;border:1px solid #2f6b4c}.verdict.v2{background:#33291a;border:1px solid #6b5426}.verdict.v3{background:#331d1b;border:1px solid #6b2f2a}
+.st{border-left:2px solid var(--line);padding:0 0 4px 10px;margin:0 0 10px 4px}
+.st h5{margin:0 0 4px;font-size:13px;font-weight:600}
+.act{font-size:12px;color:var(--muted);margin:2px 0}
+.act b{color:var(--text);font-weight:600}
+.ptable{width:100%;border-collapse:collapse;font-size:12px}
+.ptable td,.ptable th{padding:4px 6px;border-top:1px solid var(--line);text-align:left}
+.ptable th{color:var(--muted);font-weight:500}
+.chat{flex:none;border-top:1px solid var(--line);background:var(--panel2);border-radius:0 0 12px 12px}
+.chat .hd{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer}
+.chat .hd b{color:var(--text)}
+.chat .msgs{max-height:230px;overflow:auto;padding:0 12px 4px;font-size:13px}
+.chat .m{margin:6px 0;padding:6px 9px;border-radius:8px;white-space:pre-wrap;word-break:break-word}
+.chat .m.u{background:#24402f;margin-left:36px}
+.chat .m.a{background:var(--panel);margin-right:12px}
+.chat .m.e{background:#331d1b;color:#f0b8b2}
+.chat .qs{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 6px}
+.chat .qs button{background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:2px 9px;font-size:12px}
+.chat .qs button:hover{color:var(--text)}
+.chat form{display:flex;gap:6px;padding:0 12px 10px}
+.chat textarea{flex:1;resize:none;height:38px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit}
+.chat.closed .msgs,.chat.closed .qs,.chat.closed form{display:none}
+/* ===== 手机竖屏（App）布局 ===== */
+@media (max-width:820px){
+  :root{--sat:var(--safe-area-inset-top,env(safe-area-inset-top,0px));--sab:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))}
+  html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+  body{height:100vh;height:100dvh;padding-top:var(--sat);user-select:none;-webkit-user-select:none}
+  .top{padding:6px 12px;gap:8px;flex-wrap:nowrap}
+  .brand{font-size:15px;white-space:nowrap}
+  .ctrls label{display:none}
+  .hdr{flex:1;flex-wrap:nowrap;overflow:hidden;justify-content:flex-end}
+  .hdr .chip.x{display:none}
+  .wrap{display:block;padding:0;position:relative}
+  .left{height:100%;gap:0}
+  .tablewrap{min-height:0}
+  .table{position:absolute;left:0;right:0;top:0;bottom:46px}
+  .felt{inset:11% 3% 9%;border-width:9px}
+  .seat{width:100px}.seat .tag{display:none}.seat .box{padding:3px 5px}.seat .nm{font-size:12px}
+  .seat .cards{min-height:42px}.seat .last{font-size:11px;min-height:16px}
+  .card{width:36px;height:50px}.card .r{font-size:16px}.card .s{font-size:14px}
+  .card.sm{width:29px;height:41px}.card.sm .r{font-size:13px}.card.sm .s{font-size:11px}
+  .board{gap:4px;min-height:50px}
+  .betchip{font-size:11px;padding:0 7px}
+  .sheet{display:flex;flex-direction:column;position:absolute;left:0;right:0;bottom:0;height:46px;background:var(--panel);border-top:1px solid var(--line);border-radius:14px 14px 0 0;z-index:5;box-shadow:0 -6px 20px rgba(0,0,0,.45);transition:height .2s ease}
+  .sheet.open{height:74%}
+  .sheet-hd{flex:none;height:46px;display:flex;align-items:center;gap:8px;padding:0 14px;font-size:13px;white-space:nowrap;overflow:hidden;position:relative;cursor:pointer}
+  .sheet-hd:before{content:"";position:absolute;top:5px;left:50%;width:34px;height:4px;margin-left:-17px;border-radius:2px;background:var(--line)}
+  .sheet-hd .sm-txt{overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .sheet-hd .chev{margin-left:auto;color:var(--muted);font-size:14px}
+  .sheet-body{flex:1;min-height:0;overflow:auto;padding:2px 14px 14px;-webkit-overflow-scrolling:touch}
+  .actions{border-radius:0;border-width:1px 0 0;min-height:56px;padding:8px 10px;gap:6px}
+  .actions .btn.fold,.actions .btn.call{flex:1;padding:12px 8px;font-size:15px}
+  .actions .btn .k{display:none}
+  .raisebox{min-width:100%;gap:6px}
+  .raisebox .btn.raise{flex:1;padding:12px 8px;font-size:15px}
+  .raisebox input[type=number]{display:none}
+  .raisebox input[type=range]{flex-basis:100%;order:3;height:28px}
+  .preset{order:4;flex:1;padding:6px 0;font-size:12px}
+  .log{display:none}
+  aside{display:none;position:absolute;inset:0;border:none;border-radius:0}
+  aside .tabs{display:none}
+  .tabbody{padding:12px 14px 20px}
+  body.page .left{display:none}
+  body.page aside{display:flex}
+  .chat{display:none}
+  body.page-chat .tabbody{display:none}
+  body.page-chat .chat{display:flex;flex-direction:column;flex:1;min-height:0;border:none;border-radius:0;background:var(--panel)}
+  body.page-chat .chat .hd{cursor:default}
+  body.page-chat .chat #chatTog{display:none}
+  body.page-chat .chat .msgs{max-height:none;flex:1}
+  .chat textarea{user-select:text;-webkit-user-select:text}
+  .setin{user-select:text;-webkit-user-select:text}
+  .bnav{display:flex;flex:none;border-top:1px solid var(--line);background:var(--panel);padding-bottom:var(--sab)}
+  .bnav button{flex:1;background:none;border:none;color:var(--muted);padding:5px 0 6px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:0}
+  .bnav button .i{font-size:18px;line-height:1.2}
+  .bnav button.on{color:var(--gold)}
+  .hrow{grid-template-columns:38px 40px 1fr 60px 44px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span>♠</span> 德州教练</div>
+  <div class="hdr" id="hdr"></div>
+  <div class="ctrls">
+    <label><input type="checkbox" id="optHint" checked> 行动前显示建议</label>
+    <label>速度 <select id="optSpeed"><option value="1100">慢</option><option value="650">中</option><option value="250">快</option></select></label>
+    <button class="gear" id="gearBtn" title="设置">⚙︎</button>
+  </div>
+</header>
+<main class="wrap">
+  <section class="left">
+    <div class="tablewrap">
+      <div class="table" id="table">
+        <div class="felt"></div>
+        <div class="center"><div class="board" id="board"></div><div class="pot" id="pot"></div><div class="street" id="street"></div></div>
+        <div id="seats"></div>
+      </div>
+      <div class="sheet" id="sheet"><div class="sheet-hd" id="sheetHd"></div><div class="sheet-body" id="sheetBody"></div></div>
+    </div>
+    <div class="actions" id="actions"></div>
+    <div class="log" id="log"></div>
+  </section>
+  <aside>
+    <nav class="tabs" id="tabs">
+      <button data-t="coach" class="on">教练</button>
+      <button data-t="review">复盘</button>
+      <button data-t="chart">起手牌表</button>
+      <button data-t="stats">我的统计</button>
+      <button data-t="learn">知识</button>
+    </nav>
+    <div class="tabbody" id="tabbody"></div>
+    <div class="chat" id="chat">
+      <div class="hd" id="chatHd"><b>💬 问教练</b><span id="chatSt"></span><span style="margin-left:auto" id="chatTog">收起</span></div>
+      <div class="msgs" id="chatMsgs"></div>
+      <div class="qs" id="chatQs"></div>
+      <form id="chatForm"><textarea id="chatIn" placeholder="问任何问题：为什么这样建议？对手范围怎么来的？…（Enter 发送，Shift+Enter 换行）"></textarea><button class="btn sm go" id="chatGo" type="submit">发送</button></form>
+    </div>
+  </aside>
+</main>
+<nav class="bnav" id="bnav">
+  <button data-v="table" class="on"><span class="i">♠</span>牌桌</button>
+  <button data-v="review"><span class="i">⟲</span>复盘</button>
+  <button data-v="learn"><span class="i">▦</span>学习</button>
+  <button data-v="stats"><span class="i">◔</span>统计</button>
+  <button data-v="chat"><span class="i">💬</span>问教练</button>
+</nav>
+<script>
+"use strict";
+// ================= 基础 =================
+const $=s=>document.querySelector(s);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const pf=x=>(x*100).toFixed(x<0.1&&x>0?1:0)+'%';
+const fmt=x=>(x>=0?'+':'')+x.toFixed(1);
+const RANKS='23456789TJQKA', SUITS=['♠','♥','♦','♣'];
+const cr=c=>(c>>2)+2, cs=c=>c&3;
+const rn=r=>r===10?'10':RANKS[r-2];
+const N=6, SBV=1, BBV=2, START=200;
+const POS=['BTN','SB','BB','UTG','MP','CO'];
+const POS_CN={BTN:'庄位',SB:'小盲',BB:'大盲',UTG:'枪口',MP:'中位',CO:'关煞'};
+const OPEN={UTG:.15,MP:.19,CO:.27,BTN:.45,SB:.36,BB:.14};
+const POS_MULT={UTG:.7,MP:.85,CO:1.1,BTN:1.45,SB:1.0,BB:1.0};
+const STREET=['翻牌前','翻牌','转牌','河牌'];
+const HAND_NAMES=['高牌','一对','两对','三条','顺子','同花','葫芦','四条','同花顺'];
+
+function cardHTML(c,cls=''){
+  if(c==null) return `<div class="card empty ${cls}"></div>`;
+  if(c<0) return `<div class="card back ${cls}"></div>`;
+  return `<div class="card s${cs(c)} ${cls}"><span class="r">${rn(cr(c))}</span><span class="s">${SUITS[cs(c)]}</span></div>`;
+}
+const mini=c=>`<span class="mini s${cs(c)}">${rn(cr(c))}${SUITS[cs(c)]}</span>`;
+const minis=a=>`<span class="ic">${a.map(mini).join('')}</span>`;
+
+// ================= 牌力评估 =================
+function straightHigh(m){
+  for(let h=14;h>=5;h--){const need=0x1F<<(h-4); if((m&need)===need) return h;}
+  return (m&0x403C)===0x403C?5:0;
+}
+function topBits(m,n){let v=0,k=0;for(let r=14;r>=2&&k<n;r--) if(m&(1<<r)){v|=r<<(16-4*k);k++;} return v;}
+function evalHand(cards){
+  const cnt=new Array(15).fill(0), sc=[0,0,0,0], sm=[0,0,0,0]; let mask=0;
+  for(const c of cards){const r=(c>>2)+2,s=c&3;cnt[r]++;sc[s]++;sm[s]|=1<<r;mask|=1<<r;}
+  for(let s=0;s<4;s++) if(sc[s]>=5){
+    const sh=straightHigh(sm[s]); if(sh) return (8<<20)|(sh<<16);
+    return (5<<20)|topBits(sm[s],5);
+  }
+  let quad=0; const trips=[],pairs=[];
+  for(let r=14;r>=2;r--){const n=cnt[r]; if(n===4)quad=r; else if(n===3)trips.push(r); else if(n===2)pairs.push(r);}
+  if(quad){let k=0;for(let r=14;r>=2;r--) if(r!==quad&&cnt[r]){k=r;break;} return (7<<20)|(quad<<16)|(k<<12);}
+  if(trips.length&&(trips.length>1||pairs.length)){const p=Math.max(trips[1]||0,pairs[0]||0);return (6<<20)|(trips[0]<<16)|(p<<12);}
+  const sh=straightHigh(mask); if(sh) return (4<<20)|(sh<<16);
+  const ks=[];
+  if(trips.length){for(let r=14;r>=2&&ks.length<2;r--) if(cnt[r]===1) ks.push(r); return (3<<20)|(trips[0]<<16)|((ks[0]||0)<<12)|((ks[1]||0)<<8);}
+  if(pairs.length>=2){const a=pairs[0],b=pairs[1];let k=0;for(let r=14;r>=2;r--) if(r!==a&&r!==b&&cnt[r]){k=r;break;} return (2<<20)|(a<<16)|(b<<12)|(k<<8);}
+  if(pairs.length===1){for(let r=14;r>=2&&ks.length<3;r--) if(cnt[r]===1) ks.push(r); return (1<<20)|(pairs[0]<<16)|((ks[0]||0)<<12)|((ks[1]||0)<<8)|((ks[2]||0)<<4);}
+  return topBits(mask,5);
+}
+function handName(sc){const c=sc>>20; if(c===8&&((sc>>16)&15)===14) return '皇家同花顺'; return HAND_NAMES[c];}
+
+// ================= 起手牌排名（Chen 公式） =================
+function chen(h,l,s){
+  const v=r=>r===14?10:r===13?8:r===12?7:r===11?6:r/2;
+  if(h===l) return Math.max(5,v(h)*2);
+  let sc=v(h); if(s) sc+=2; const gap=h-l-1;
+  sc-= gap===0?0:gap===1?1:gap===2?2:gap===3?4:5;
+  if(gap<=1&&h<12) sc+=1;
+  return sc;
+}
+const keyOf=(h,l,s)=>h===l?RANKS[h-2]+RANKS[l-2]:RANKS[h-2]+RANKS[l-2]+(s?'s':'o');
+function handKey(a,b){let x=cr(a),y=cr(b);if(x<y){const t=x;x=y;y=t;} return keyOf(x,y,x!==y&&cs(a)===cs(b));}
+const PCT={}, SORTED=[];
+(function(){
+  for(let h=14;h>=2;h--) for(let l=h;l>=2;l--){
+    if(h===l) SORTED.push({h,l,s:false,pair:true,combos:6});
+    else{SORTED.push({h,l,s:true,combos:4});SORTED.push({h,l,s:false,combos:12});}
+  }
+  SORTED.forEach(c=>{c.key=keyOf(c.h,c.l,c.s);c.score=chen(c.h,c.l,c.s);});
+  SORTED.sort((a,b)=>b.score-a.score||(b.pair?1:0)-(a.pair?1:0)||(b.s?1:0)-(a.s?1:0)||b.h-a.h||b.l-a.l);
+  let cum=0; SORTED.forEach(c=>{cum+=c.combos;c.pct=cum/1326;PCT[c.key]=c.pct;});
+})();
+const PCT_TAB=new Float32Array(52*52);
+for(let a=0;a<52;a++) for(let b=0;b<52;b++) if(a!==b) PCT_TAB[a*52+b]=PCT[handKey(a,b)];
+const handPct=h=>PCT_TAB[h[0]*52+h[1]];
+// 把“前 x%”翻译成扑克记法，例如 77+ · ATs+ · KQo
+function rangeText(r){
+  if(r>=.99) return '任意两张牌';
+  const keys=SORTED.filter(c=>c.pct<=r+1e-9); const R=x=>RANKS[x-2]; const parts=[];
+  const pairs=keys.filter(c=>c.pair).map(c=>c.h);
+  if(pairs.length){const mn=Math.min(...pairs);parts.push(mn===14?'AA':`${R(mn)}${R(mn)}+`);}
+  for(const s of [true,false]) for(let h=14;h>=3;h--){
+    const ls=keys.filter(c=>!c.pair&&c.s===s&&c.h===h).map(c=>c.l); if(!ls.length) continue;
+    const mn=Math.min(...ls); parts.push(`${R(h)}${R(mn)}${s?'s':'o'}${mn<h-1?'+':''}`);
+  }
+  return parts.length>11?parts.slice(0,11).join(' · ')+' …':parts.join(' · ');
+}
+
+// ================= 蒙特卡洛胜率 =================
+function hitsBoard(a,b,board){
+  const sc=evalHand([a,b,...board]), bsc=evalHand(board);
+  if((sc>>20)>(bsc>>20)) return true;
+  for(let s=0;s<4;s++){ if(cs(a)!==s&&cs(b)!==s) continue; let n=(cs(a)===s)+(cs(b)===s); for(const c of board) if(cs(c)===s) n++; if(n>=4) return true; }
+  return false;
+}
+// opps: [{range, aggr, acc}] 或 null(随机)，或 {fixed:[c1,c2]}
+// det（可选）：传入 {} 时顺便统计明细——你赢/平/输的次数、每个对手最终赢下的份额、对手范围里“现在就比你大”的比例
+function mcEquity(hole,board,opps,iters,det){
+  const dead=new Set([...hole,...board]); opps.forEach(o=>{if(o&&o.fixed)o.fixed.forEach(c=>dead.add(c));});
+  const d=[]; for(let c=0;c<52;c++) if(!dead.has(c)) d.push(c);
+  if(board.length===5&&opps.every(o=>o&&o.fixed)) iters=1;
+  const K=opps.length, cur=det&&board.length>=3;
+  const heroNow=cur?evalHand([...hole,...board]):0, nowTmp=new Array(2+board.length);
+  if(det){det.iters=iters;det.win=0;det.tie=0;det.lose=0;det.oppWin=new Array(K).fill(0);det.oppAhead=new Array(K).fill(0);det.oppTie=new Array(K).fill(0);det.cur=!!cur;}
+  if(cur) for(let k=0;k<board.length;k++) nowTmp[k+2]=board[k];
+  let win=0; const L=d.length; const bd=new Array(5), hand=new Array(7), oh=[], sc=new Array(K);
+  for(let it=0;it<iters;it++){
+    let n=L;
+    const draw=()=>{const i=(Math.random()*n)|0;const c=d[i];d[i]=d[n-1];d[n-1]=c;n--;return c;};
+    oh.length=0;
+    for(let k=0;k<K;k++){
+      const o=opps[k];
+      if(o&&o.fixed){oh.push(o.fixed[0],o.fixed[1]);continue;}
+      let a,b,t=0;
+      for(;;){
+        a=draw();b=draw();
+        if(!o||t>=40) break;
+        let ok=PCT_TAB[a*52+b]<=o.range+1e-9;
+        if(ok&&o.aggr&&board.length&&!hitsBoard(a,b,board)) ok=Math.random()<o.acc;
+        if(ok) break; n+=2; t++;
+      }
+      oh.push(a,b);
+      if(cur){nowTmp[0]=a;nowTmp[1]=b;const s=evalHand(nowTmp);if(s>heroNow)det.oppAhead[k]++;else if(s===heroNow)det.oppTie[k]++;}
+    }
+    for(let k=0;k<board.length;k++) bd[k]=board[k];
+    for(let k=board.length;k<5;k++) bd[k]=draw();
+    hand[0]=hole[0];hand[1]=hole[1];for(let k=0;k<5;k++) hand[k+2]=bd[k];
+    const hs=evalHand(hand);
+    if(!det){
+      let ties=0,lose=false;
+      for(let j=0;j<oh.length;j+=2){hand[0]=oh[j];hand[1]=oh[j+1];const s=evalHand(hand); if(s>hs){lose=true;break;} if(s===hs) ties++;}
+      if(!lose) win+=1/(ties+1);
+      continue;
+    }
+    let best=hs;
+    for(let k=0;k<K;k++){hand[0]=oh[2*k];hand[1]=oh[2*k+1];sc[k]=evalHand(hand);if(sc[k]>best)best=sc[k];}
+    let nb=hs===best?1:0; for(let k=0;k<K;k++) if(sc[k]===best) nb++;
+    const share=1/nb;
+    if(hs===best){win+=share; if(nb===1)det.win++; else det.tie++;} else det.lose++;
+    for(let k=0;k<K;k++) if(sc[k]===best) det.oppWin[k]+=share;
+  }
+  if(det) det.eq=win/iters;
+  return win/iters;
+}
+
+// —— 后台线程算胜率，避免手机上点击后卡顿 ——
+let EQW=null, eqSeq=0; const eqPending=new Map();
+try{
+  const src=`"use strict";const cr=c=>(c>>2)+2,cs=c=>c&3;let PCT_TAB;\n${straightHigh}\n${topBits}\n${evalHand}\n${hitsBoard}\n${mcEquity}\n`+
+    `onmessage=e=>{const d=e.data;if(d.init){PCT_TAB=d.init;return;}const det={};mcEquity(d.hole,d.board,d.opps,d.iters,det);postMessage({id:d.id,det});};`;
+  EQW=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
+  EQW.postMessage({init:PCT_TAB});
+  EQW.onmessage=e=>{const r=eqPending.get(e.data.id);if(r){eqPending.delete(e.data.id);r(e.data.det);}};
+  EQW.onerror=()=>{EQW=null;eqPending.forEach(r=>r(null));eqPending.clear();};
+}catch(e){EQW=null;}
+// 返回明细对象 det（det.eq 为胜率）
+function equityAsync(hole,board,opps,iters){
+  const local=()=>{const det={};mcEquity(hole,board,opps,iters,det);return det;};
+  if(!EQW) return Promise.resolve(local());
+  return new Promise(res=>{const id=++eqSeq;eqPending.set(id,v=>res(v==null?local():v));EQW.postMessage({id,hole,board,opps,iters});});
+}
+
+// ================= 对手（名字即风格） =================
+const BOTS=[
+  {name:'紧弱',tag:'Rock · 只玩好牌',vpip:.14,pfr:.09,aggr:.35,bluff:.03,callLoose:1.15,fold:.55,
+   note:'只玩好牌、很少诈唬。他下注/加注时通常有真货，边缘牌可以弃；他过牌时你可以多偷。',exploit:'多偷他的盲注；他一加注就尊重。'},
+  {name:'松弱',tag:'跟注站 · 很少弃牌',vpip:.48,pfr:.05,aggr:.2,bluff:.03,callLoose:.7,fold:.14,
+   note:'玩很多牌、几乎不弃牌、很少主动加注。',exploit:'绝不诈唬他；中等以上的牌就大胆价值下注，下注可以更大。'},
+  {name:'紧凶',tag:'TAG · 标准好手',vpip:.22,pfr:.18,aggr:.7,bluff:.10,callLoose:1.0,fold:.42,
+   note:'牌挑得紧，入池就加注，翻后有压力。',exploit:'尊重他的加注；没位置时少和他纠缠，用强牌和他打大底池。'},
+  {name:'松凶',tag:'LAG · 频繁加注诈唬',vpip:.45,pfr:.32,aggr:.9,bluff:.25,callLoose:.85,fold:.28,
+   note:'加注和诈唬都很频繁。',exploit:'用中等牌抓诈，强牌让他自己下注（慢打）；少对他诈唬。'},
+  {name:'平衡',tag:'Reg · 均衡型',vpip:.26,pfr:.15,aggr:.5,bluff:.08,callLoose:.95,fold:.38,
+   note:'打法均衡，没有明显漏洞。',exploit:'按赔率和范围正常打，靠位置取胜。'},
+];
+
+// ================= 存储 =================
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const DEF_STATS=()=>({hands:0,vpip:0,pfr:0,net:0,dec:0,score:0,good:0,ok:0,bad:0,tags:{},rebuys:0,wtsd:0,wsd:0,evLoss:0,guessN:0,guessOK:0,st:[[0,0],[0,0],[0,0],[0,0]],pos:{}});
+let STATS=Object.assign(DEF_STATS(),LS.get('pk_stats2',{}));
+let HIST=LS.get('pk_hist',[]);
+const OPT=Object.assign({hint:true,speed:650,haptics:true,ai:'flash'},LS.get('pk_opt',{}));
+// 旧版本存的是 Claude 的密钥/模型，改用 DeepSeek 后作废
+if(OPT.apiKey||OPT.model){delete OPT.apiKey;delete OPT.model;try{localStorage.setItem('pk_opt',JSON.stringify(OPT));}catch(e){}}
+const saveOpt=()=>LS.set('pk_opt',OPT);
+const CAP=window.Capacitor, IS_APP=!!(CAP&&CAP.isNativePlatform&&CAP.isNativePlatform());
+const plug=n=>CAP&&CAP.Plugins&&CAP.Plugins[n];
+function buzz(kind){
+  if(!OPT.haptics) return;
+  try{
+    const H=plug('Haptics');
+    if(H){ if(kind==='bad') H.notification({type:'ERROR'}); else H.impact({style:kind==='turn'?'MEDIUM':'LIGHT'}); }
+    else if(navigator.vibrate) navigator.vibrate(kind==='bad'?[30,60,30]:15);
+  }catch(e){}
+}
+
+// ================= 游戏状态 =================
+const G={players:[],dealer:Math.floor(Math.random()*N),handNo:0,board:[],deck:[],street:0,cur:0,minRaise:BBV,
+  preRaises:0,lastRaiser:-1,preAggressor:-1,toAct:-1,running:false,over:true,log:[],analysis:null,
+  decisions:[],tl:[],result:null,raiseTo:0,heroStart:START,sessionNet:0,sessionHands:0,guess:null};
+const P=G.players;
+P.push({name:'你',isHero:true,stack:START});
+BOTS.forEach(b=>P.push({name:b.name,style:b,stack:START}));
+const posOf=i=>POS[(i-G.dealer+N)%N];
+const postOrder=i=>(i-G.dealer-1+N)%N;
+const potTotal=()=>P.reduce((s,p)=>s+p.totalIn,0);
+const notFolded=()=>P.filter(p=>!p.folded);
+const canAct=()=>P.filter(p=>!p.folded&&!p.allIn);
+function log(html){G.log.push(html);if(G.log.length>80)G.log.shift();}
+function tlAct(p,label,extra){G.tl[G.street].acts.push(Object.assign({n:p.name,l:label,h:!!p.isHero},extra||{}));}
+
+function shuffle(){const d=[];for(let i=0;i<52;i++)d.push(i);for(let i=51;i>0;i--){const j=(Math.random()*(i+1))|0;[d[i],d[j]]=[d[j],d[i]];}return d;}
+function put(p,amt){amt=Math.min(amt,p.stack);p.stack-=amt;p.bet+=amt;p.totalIn+=amt;if(p.stack===0)p.allIn=true;}
+
+function startHand(){
+  G.handNo++; G.dealer=(G.dealer+1)%N;
+  P.forEach(p=>{
+    if(p.isHero){ if(p.stack<=0){p.stack=START;STATS.rebuys++;log('<b>你</b> 重新买入 200');} }
+    else if(p.stack<60||p.stack>500){ p.stack=START; }
+    Object.assign(p,{hole:[],bet:0,totalIn:0,folded:false,allIn:false,acted:false,last:'',range:1,rangeWhy:[],aggrSt:-1,postAggr:0,shown:false,won:0,score:0});
+  });
+  G.heroStart=P[0].stack;
+  G.deck=shuffle(); G.board=[]; G.street=0; G.preRaises=0; G.lastRaiser=-1; G.preAggressor=-1;
+  G.decisions=[]; G.result=null; G.over=false; G.analysis=null; G.guess=null;
+  G.heroVpip=false; G.heroPfr=false;
+  G.tl=[{s:0,board:[],pot:0,acts:[]}];
+  const sb=(G.dealer+1)%N, bb=(G.dealer+2)%N;
+  put(P[sb],SBV); P[sb].last='小盲 1'; tlAct(P[sb],'小盲 1');
+  put(P[bb],BBV); P[bb].last='大盲 2'; tlAct(P[bb],'大盲 2');
+  G.cur=BBV; G.minRaise=BBV;
+  for(let r=0;r<2;r++) for(let k=1;k<=N;k++) P[(G.dealer+k)%N].hole.push(G.deck.pop());
+  log(`<b>— 第 ${G.handNo} 手 —</b> 你在 ${POS_CN[posOf(0)]}(${posOf(0)})，手牌 ${minis(P[0].hole)}`);
+  G.toAct=nextToAct((G.dealer+2)%N);
+}
+function nextToAct(from){
+  for(let k=1;k<=N;k++){const j=(from+k)%N,p=P[j]; if(!p.folded&&!p.allIn&&(!p.acted||p.bet<G.cur)) return j;}
+  return -1;
+}
+function nextStreet(){
+  P.forEach(p=>{p.bet=0;p.acted=false;if(!p.folded&&!p.allIn)p.last='';});
+  G.cur=0; G.minRaise=BBV; G.street++;
+  G.deck.pop();
+  if(G.street===1) G.board.push(G.deck.pop(),G.deck.pop(),G.deck.pop()); else G.board.push(G.deck.pop());
+  G.tl.push({s:G.street,board:[...G.board],pot:potTotal(),acts:[]});
+  log(`${STREET[G.street]}：${minis(G.board)}　底池 ${potTotal()}`);
+  G.toAct=nextToAct(G.dealer);
+}
+
+function applyAction(i,a){
+  const p=P[i], toCall=G.cur-p.bet, pos=posOf(i);
+  let label='';
+  if(a.type==='check'&&toCall>0) a={type:'call'};
+  if(a.type==='raise'){
+    const maxTo=p.bet+p.stack; let to=Math.min(Math.round(a.to),maxTo);
+    const minTo=G.cur+G.minRaise; if(to<minTo) to=Math.min(minTo,maxTo);
+    if(to<=G.cur) a={type:toCall>0?'call':'check'};
+    else{
+      if(G.street===0&&p.style){
+        p.range= G.preRaises===0?clamp(p.style.pfr*POS_MULT[pos]):G.preRaises===1?clamp(p.style.pfr*.3):.025;
+        p.rangeWhy.push(G.preRaises===0?`${POS_CN[pos]}开池加注：他平时加注率约 ${pf(p.style.pfr)} × ${POS_CN[pos]}位置系数 ${POS_MULT[pos]} → 前 ${pf(p.range)}`
+          :G.preRaises===1?`再加注（3-bet）：只用加注牌里最强的约 30% → 前 ${pf(p.range)}`:`4-bet 以上：只剩最顶端的牌（QQ+/AK 一类）→ 前 ${pf(p.range)}`);
+      }
+      const inc=to-G.cur; if(inc>=G.minRaise) G.minRaise=inc;
+      const wasBet=G.cur===0;
+      put(p,to-p.bet); G.cur=to; G.lastRaiser=i;
+      P.forEach((q,j)=>{if(j!==i&&!q.folded&&!q.allIn) q.acted=false;});
+      if(G.street===0){G.preRaises++;G.preAggressor=i;} else{p.postAggr++;
+        if(p.style&&p.aggrSt!==G.street){p.aggrSt=G.street;p.rangeWhy.push(`${STREET[G.street]}主动${wasBet?'下注':'加注'}：推测多数是击中的牌；没成对、没听同花的牌只保留约 ${pf(Math.min(.6,.12+p.style.bluff*2))}（诈唬的比例，按他的风格）`);}}
+      label=(wasBet?'下注 ':'加注到 ')+to+(p.allIn?'（全下）':'');
+      a={type:'raise',to};
+    }
+  }
+  if(a.type==='call'){
+    if(G.street===0&&p.style){
+      const isBB=pos==='BB';
+      p.range= G.preRaises===0?clamp(p.style.vpip*POS_MULT[pos]):G.preRaises===1?clamp(p.style.vpip*.65*(isBB?1.4:1)):clamp(p.style.vpip*.2);
+      p.rangeWhy.push(G.preRaises===0?`溜入（只跟大盲）：入池率 ${pf(p.style.vpip)} × 位置系数 ${POS_MULT[pos]} → 前 ${pf(p.range)}`
+        :G.preRaises===1?`跟注加注：取入池范围的 65%${isBB?'，大盲赔率好再放宽 1.4 倍':''} → 前 ${pf(p.range)}`:`跟注再加注：只剩很强的牌 → 前 ${pf(p.range)}`);
+    }
+    const amt=Math.min(toCall,p.stack); put(p,amt); label=p.allIn?`跟注全下 ${amt}`:`跟注 ${amt}`;
+  }
+  if(a.type==='check') label='过牌';
+  if(a.type==='fold'){p.folded=true;label='弃牌';}
+  p.acted=true; p.last=label;
+  if(p.isHero&&G.street===0&&(a.type==='call'||a.type==='raise')){G.heroVpip=true;if(a.type==='raise')G.heroPfr=true;}
+  tlAct(p,label,p.isHero?{d:G.decisions.length}:null);
+  log(`<b>${p.name}</b> ${label}`);
+  return a;
+}
+
+// ================= 机器人决策 =================
+function botDecide(i){
+  const p=P[i], s=p.style, toCall=G.cur-p.bet, pos=posOf(i), r=Math.random(), pot=potTotal();
+  const raiseTo=to=>{ if(to>=(p.bet+p.stack)*.45) to=p.bet+p.stack; return {type:'raise',to}; };
+  if(G.street===0){
+    const pct=handPct(p.hole), m=POS_MULT[pos];
+    if(toCall>0&&toCall>=p.stack*.4) return pct<=.03+s.vpip*.08?{type:'call'}:{type:'fold'};
+    if(G.preRaises===0){
+      const limpers=P.filter((q,j)=>j!==i&&!q.folded&&q.acted&&q.bet===BBV).length;
+      if(pct<=s.pfr*m) return raiseTo(BBV*((s.aggr>.8?3:2.5)+limpers));
+      if(pct<=s.vpip*m) return toCall===0?{type:'check'}:{type:'call'};
+      return toCall===0?{type:'check'}:{type:'fold'};
+    }
+    if(G.preRaises===1){
+      if(pct<=s.pfr*.3) return raiseTo(G.cur*3);
+      if(pct<=s.vpip*.65*(pos==='BB'?1.4:1)) return {type:'call'};
+      return {type:'fold'};
+    }
+    if(pct<=.025) return raiseTo(G.cur*2.3);
+    if(pct<=s.vpip*.2) return {type:'call'};
+    return {type:'fold'};
+  }
+  const n=notFolded().length-1;
+  const eq=mcEquity(p.hole,G.board,new Array(n).fill(null),300);
+  const vt=n===1?.6:n===2?.45:.36, st=n===1?.78:n===2?.62:.52;
+  if(toCall>0){
+    const req=toCall/(pot+toCall);
+    if(eq>=st&&r<.4+s.aggr*.5) return raiseTo(G.cur*2.5+pot*.25);
+    if(eq>=req*s.callLoose+.02) return {type:'call'};
+    if(r<s.bluff*.25&&G.street<3) return raiseTo(G.cur*2.5+pot*.25);
+    return {type:'fold'};
+  }
+  if(eq>=vt&&r<.45+s.aggr*.5) return raiseTo(Math.max(BBV,pot*(.5+.25*Math.random())));
+  if(r<s.bluff) return raiseTo(Math.max(BBV,pot*.5));
+  return {type:'check'};
+}
+
+// ================= 教练分析 =================
+function oppModels(i){
+  return P.filter((q,j)=>j!==i&&!q.folded).map(q=>({range:q.range,aggr:q.postAggr>0,acc:Math.min(.6,.12+(q.style?q.style.bluff:.1)*2)}));
+}
+function describeHand(hole,board){
+  const sc=evalHand([...hole,...board]), cat=sc>>20, bsc=evalHand(board), bcat=bsc>>20;
+  let name=handName(sc);
+  const br=[...new Set(board.map(cr))].sort((a,b)=>b-a);
+  const pocket=cr(hole[0])===cr(hole[1]);
+  if(board.length===5&&sc===bsc) return {sc,cat,name:name+'（公共牌成牌，最多平分）'};
+  if(cat===1){
+    const pr=(sc>>16)&15;
+    if(bcat===1&&((bsc>>16)&15)===pr) name='只有公共对子（≈高牌）';
+    else if(pocket) name=pr>br[0]?'超对（口袋对大于所有公牌）':pr<br[br.length-1]?'小口袋对（低于所有公牌）':'中间口袋对';
+    else{
+      const kick=cr(hole[0])===pr?cr(hole[1]):cr(hole[0]);
+      if(pr===br[0]) name='顶对，'+(kick>=12?'好踢脚':kick>=10?'中等踢脚':'弱踢脚');
+      else if(pr===br[br.length-1]) name='底对'; else name='中对';
+    }
+  }else if(cat===2&&bcat===1) name='两对（其中一对是公共对子）';
+  else if(cat===3) name=pocket?'暗三条（set，非常强且隐蔽）':bcat===1?'明三条（trips，注意踢脚）':'三条';
+  else if(cat===0) name='高牌（没有成牌）';
+  return {sc,cat,name};
+}
+function drawInfo(hole,board){
+  if(board.length<3||board.length>=5) return null;
+  const known=new Set([...hole,...board]), base=[...hole,...board];
+  const cur=evalHand(base)>>20, maxB=Math.max(...board.map(cr));
+  const by={}; let outs=0;
+  for(let c=0;c<52;c++){
+    if(known.has(c)) continue;
+    const ns=evalHand([...base,c]), nc=ns>>20, bc=evalHand([...board,c])>>20;
+    if(nc<=cur||nc<=bc) continue;
+    if(nc===2&&bc===1) continue; // 两对里有一对是公共对子，不算真正的 outs
+    if(nc===1&&((ns>>16)&15)<Math.max(maxB,cr(c))) continue;
+    outs++; by[nc]=(by[nc]||0)+1;
+  }
+  if(!outs) return {outs:0,by,est:0,text:'没有明显的补牌'};
+  const parts=Object.keys(by).sort((a,b)=>b-a).map(k=>`${HAND_NAMES[k]} ${by[k]} 张`);
+  const est=board.length===3?Math.min(outs*4-(outs>8?outs-8:0),95):outs*2;
+  return {outs,by,est,text:parts.join('、')};
+}
+function isWet(board){
+  const sc=[0,0,0,0]; board.forEach(c=>sc[cs(c)]++);
+  if(Math.max(...sc)>=2) return true;
+  const r=[...new Set(board.map(cr))].sort((a,b)=>a-b);
+  for(let i=0;i+1<r.length;i++) if(r[i+1]-r[i]<=2) return true;
+  return false;
+}
+
+// —— 期望值模型（简化）——
+function foldProb(q,frac,isBettor){
+  let f=q.style.fold+.22*(frac-.5);
+  if(isBettor) f*=.55; else if(q.postAggr>0) f*=.85;
+  return clamp(f,.03,.85);
+}
+function raiseEV(A,p,T){
+  const {eq,pot}=A; const B=T-p.bet, c=Math.max(0,T-G.cur), frac=B/Math.max(1,pot);
+  let fe=1;
+  P.forEach(q=>{ if(q===p||q.folded) return; if(q.allIn){fe=0;return;} fe*=foldProb(q,frac,G.cur>0&&q.bet===G.cur); });
+  const eqC=eq>=.85?eq-.02:clamp(eq-(.07+.08*Math.min(frac,1.5)));
+  return {ev:fe*pot+(1-fe)*(eqC*(pot+B+c)-B),fe,eqC};
+}
+function evOptions(A,p){
+  const {eq,pot,toCall}=A, maxTo=p.bet+p.stack, out=[];
+  if(toCall>0){
+    out.push({type:'fold',label:'弃牌',ev:0});
+    let imp=0;
+    if(A.dr&&A.dr.outs>=6&&G.street<3&&toCall<p.stack){const unseen=50-G.board.length;imp=(A.dr.outs/unseen)*Math.min(Math.max(0,A.eff-toCall),pot)*.5;}
+    out.push({type:'call',label:toCall>=p.stack?`跟注全下 ${toCall}`:`跟注 ${toCall}`,ev:eq*pot-(1-eq)*toCall+imp,imp});
+  }else out.push({type:'check',label:'过牌',ev:eq*pot*(A.lastPos?1:.9),note:A.lastPos?'':'没位置，胜率兑现打 9 折'});
+  if(p.stack>toCall&&maxTo>G.cur){
+    const minTo=Math.min(G.cur+G.minRaise,maxTo), tos=new Set();
+    if(toCall>0) [2.5,3.5].forEach(m=>tos.add(Math.round(G.cur*m)));
+    else [.33,.5,.75,1].forEach(f=>tos.add(p.bet+Math.max(BBV,Math.round(pot*f))));
+    if(maxTo-p.bet<=pot*1.3) tos.add(maxTo);
+    const seen=new Set();
+    for(let T of tos){
+      T=clamp(T,minTo,maxTo); if(seen.has(T)) continue; seen.add(T);
+      const r=raiseEV(A,p,T); const frac=(T-p.bet)/Math.max(1,pot);
+      const lbl=(T===maxTo?'全下 ':toCall>0?'加注到 ':'下注 ')+T+(toCall===0&&T!==maxTo?`（${Math.round(frac*100)}%底池）`:'');
+      out.push({type:'raise',to:T,label:lbl,ev:r.ev,fe:r.fe});
+    }
+  }
+  return out;
+}
+
+function analyze(i,det){
+  const p=P[i], toCall=Math.min(G.cur-p.bet,p.stack), pot=potTotal(), pos=posOf(i);
+  const opps=oppModels(i), n=opps.length;
+  if(!det){det={};mcEquity(p.hole,G.board,opps,G.street===0?2500:3500,det);}
+  const eq=det.eq;
+  const req=toCall>0?toCall/(pot+toCall):0, evCall=toCall>0?eq*pot-(1-eq)*toCall:0;
+  const lastPos=notFolded().every(q=>q===p||postOrder(P.indexOf(q))<postOrder(i));
+  const eff=Math.min(p.stack,Math.max(0,...P.filter(q=>q!==p&&!q.folded).map(q=>q.stack+q.bet-p.bet)));
+  const A={street:G.street,toCall,pot,eq,req,evCall,n,pos,lastPos,eff,fair:1/(n+1),why:[],lines:[],live:P.map((q,j)=>j).filter(j=>j!==i&&!P[j].folded)};
+  const key=handKey(p.hole[0],p.hole[1]), pct=handPct(p.hole); A.pct=pct; A.key=key;
+  A.lines.push(['手牌',`${minis(p.hole)} <b>${key}</b>（起手牌前 ${pf(pct)}）`]);
+  const behind=P.filter((q,j)=>j!==i&&!q.folded&&!q.acted).length;
+  A.lines.push(['位置',`${POS_CN[pos]} ${pos}${G.street>0?(lastPos?'，<span class="g-good">最后行动（有位置）</span>':'，<span class="g-ok">没位置（先行动）</span>'):`，后面还有 ${behind} 人没行动`}`]);
+  if(G.street===0) preflopRec(A,p,i); else postflopRec(A,p,i);
+  if(toCall>0){
+    A.lines.push(['底池/跟注',`底池 ${pot}，需跟注 ${toCall}`]);
+    A.lines.push(['底池赔率',`${toCall} ÷ (${pot} + ${toCall}) = <b>${pf(req)}</b> → 胜率 ≥ ${pf(req)} 跟注才不亏`]);
+  }else A.lines.push(['底池',`${pot}（无人下注，可以免费过牌）`]);
+  A.lines.push(['估算胜率',`<b>${pf(eq)}</b>　对 ${n} 位对手的可能范围（平均水平 ${pf(A.fair)}）`]);
+  if(toCall>0&&A.mode!=='open'&&G.street===0) A.lines.push(['跟注期望',`${eq.toFixed(2)}×${pot} − ${(1-eq).toFixed(2)}×${toCall} = <b class="${evCall>=0?'g-good':'g-bad'}">${fmt(evCall)}</b>（只算摊牌）`]);
+  A.spr=pot>0?eff/pot:0;
+  if(G.street>0) A.lines.push(['SPR',`${A.spr.toFixed(1)}　（有效筹码 ${eff} ÷ 底池；<3 适合打光，>10 投入要谨慎）`]);
+  if(toCall===0&&A.rec&&A.rec.type==='raise'&&G.street>0){const B=A.rec.to-p.bet;A.lines.push(['对手视角',`你下注 ${B} 后，底池变 ${pot+B}，他要跟 ${B} → 他需要胜率 ≥ ${B}÷(${pot+B}+${B}) = <b>${pf(B/(pot+2*B))}</b>。下得越大，他需要的胜率越高，越难跟。`]);}
+  A.det=det; A.concept=concept(A); A.tips=tipsFor(A);
+  return A;
+}
+
+function preflopRec(A,p,i){
+  const {pct,toCall,pos}=A;
+  const h=Math.max(cr(p.hole[0]),cr(p.hole[1])), l=Math.min(cr(p.hole[0]),cr(p.hole[1]));
+  const pair=h===l, suited=cs(p.hole[0])===cs(p.hole[1]);
+  if(toCall>0&&toCall>=p.stack*.4&&G.preRaises>=1){
+    A.mode='allin';
+    A.opts=[{type:'fold',label:'弃牌',ev:0},{type:'call',label:`跟注 ${toCall}`,ev:A.evCall}];
+    if(A.eq>=A.req){A.rec={type:'call'};A.why.push(`面对大额下注，直接比胜率和赔率：你对他范围的胜率 ${pf(A.eq)} ≥ 需要的 ${pf(A.req)}，跟注长期盈利。`);}
+    else{A.rec={type:'fold'};A.why.push(`面对大额下注，你的胜率 ${pf(A.eq)} 低于需要的 ${pf(A.req)}，弃牌。对手全下/大加注的范围很窄，别被“好看的牌”套住。`);}
+    A.best=A.opts.find(o=>o.type===A.rec.type);
+    return;
+  }
+  if(G.preRaises===0){
+    A.mode='open';
+    const limpers=P.filter((q,j)=>j!==i&&!q.folded&&q.acted&&q.bet===BBV).length;
+    const thr=OPEN[pos]; A.thr=thr;
+    if(pct<=thr){
+      const to=Math.round(BBV*((pos==='BB'?3:2.5)+limpers));
+      A.rec={type:'raise',to};
+      A.why.push(`你的牌在所有起手牌的前 ${pf(pct)}，在${POS_CN[pos]}的开池范围（约前 ${pf(thr)}）之内。`);
+      A.why.push(limpers?`前面有 ${limpers} 人溜入，加注到 ${to}（3BB + 每个溜入者 1BB）来隔离他们，争取单挑。`:`没人入池时要玩就<b>加注</b>，不要溜入：能直接赢下盲注，翻后也掌握主动（可以持续下注）。`);
+      if(pct<=.035) A.why.push('这是顶级牌，后面有人加注也可以再加注（3-bet）。');
+    }else if(toCall===0){
+      A.rec={type:'check'};A.why.push(`牌力（前 ${pf(pct)}）不够加注，大盲可以免费看翻牌，过牌。`);
+    }else{
+      A.rec={type:'fold'};
+      A.why.push(`你的牌只在前 ${pf(pct)}，超出${POS_CN[pos]}的开池范围（约前 ${pf(thr)}）。`);
+      A.why.push(pos==='UTG'||pos==='MP'?'前位后面还有很多人要行动，任何人都可能拿到更好的牌，所以必须更紧。':pos==='SB'?'小盲翻后永远先行动（没位置），只补 1 个筹码也不划算。':'弱牌入池长期亏钱，弃牌没有成本。');
+    }
+    return;
+  }
+  const rq=P[G.lastRaiser]; const rr=rq.range;
+  const ip=postOrder(i)>postOrder(G.lastRaiser);
+  const callers=P.filter((q,j)=>j!==i&&j!==G.lastRaiser&&!q.folded&&q.acted&&q.bet===G.cur).length;
+  const effR=Math.min(p.stack+p.bet,rq.stack+rq.bet);
+  if(G.preRaises===1){
+    A.mode='vsRaise';
+    const tb=Math.max(.03,rr*.22);
+    const callThr=pos==='BB'?clamp(rr*1.1,.15,.45):ip?clamp(rr*.55,.07,.25):clamp(rr*.4,.05,.18);
+    A.thr=callThr; A.tb=tb;
+    A.why.push(`<b>${rq.name}</b> 在${POS_CN[posOf(G.lastRaiser)]}加注，他的范围大约前 ${pf(rr)}：<code>${rangeText(rr)}</code>。`);
+    if(pct<=tb){const to=Math.round(G.cur*(ip?3:3.6)+callers*G.cur);A.rec={type:'raise',to};A.why.push(`你的牌（前 ${pf(pct)}）明显强于他的范围，<b>3-bet</b> 到 ${to} 做价值${ip?'':'（没位置时加注更大）'}${callers?`，前面有 ${callers} 人跟注，再加大一些`:''}。`);}
+    else if(pct<=callThr){A.rec={type:'call'};A.why.push(`你的牌（前 ${pf(pct)}）在跟注范围内（约前 ${pf(callThr)}）${pos==='BB'?'：大盲已投入 1BB，赔率好，防守可以更宽':ip?'：有位置，翻后信息优势':''}，但不够强去 3-bet。`);}
+    else if(pos==='BB'&&callers===0&&A.eq>=A.req+.03){A.rec={type:'call'};A.why.push(`大盲已投入 1BB，只需再补 ${toCall}：底池赔率要求胜率 ≥ ${pf(A.req)}，而你对他范围的胜率约 ${pf(A.eq)}，赔率支持跟注（防守大盲）。`);}
+    else if(pair&&(G.cur-p.bet)*15<=effR){A.rec={type:'call'};A.setMine=true;A.why.push(`小对子<b>搏三条</b>（set mining）：翻牌中三条约 12%（1/8）。有效筹码 ${effR} ≥ 15 × 跟注额 ${G.cur-p.bet}，中了能赢大底池，跟注划算。`);}
+    else{A.rec={type:'fold'};A.why.push(`你的牌（前 ${pf(pct)}）在他的范围面前太弱，跟注上限约前 ${pf(callThr)}。${ip?'':'没位置时更要收紧。'}`);
+      if(pair) A.why.push(`小对子搏三条需要有效筹码 ≥ 15 倍跟注额（${(G.cur-p.bet)*15}），现在只有 ${effR}，不够。`);}
+    if(!pair&&!suited&&h>=10&&l>=9&&A.rec.type!=='raise') A.why.push('⚠️ 不同花的大牌（如 AJo、KQo）面对加注容易被<b>压制</b>：对手常有 AQ/AK，你中了顶对也会输大底池。');
+    if(suited&&h-l<=2&&h<=11&&ip&&(G.cur-p.bet)*20<=effR){A.scOK=true; if(A.rec.type==='fold') A.why.push('同花连张有位置、筹码深时，靠隐含赔率跟注也可以接受（不是必须）。');}
+    if(callers) A.why.push(`已经有 ${callers} 人跟注，多人底池里需要更强的牌或能做大牌的牌（对子、同花连张）。`);
+    return;
+  }
+  A.mode='vs3bet'; A.thr=.07;
+  A.why.push(`已经有 ${G.preRaises} 次加注，${rq.name} 的范围非常强（约前 ${pf(rr)}：<code>${rangeText(rr)}</code>）。`);
+  if(pct<=.025){A.rec={type:'raise',to:Math.round(G.cur*2.3)};A.why.push('你的牌在最顶端（QQ+/AK 一类），继续加注（4-bet）。');}
+  else if(pct<=.07&&(G.cur-p.bet)<=p.stack*.35){A.rec={type:'call'};A.why.push('牌力不错且筹码够深，可以跟注看翻牌，但别再加注。');}
+  else{A.rec={type:'fold'};A.why.push('面对再加注，只继续最强的那一小部分牌。之前投入的筹码已经是“沉没成本”，不要因为它而跟注。');}
+}
+
+function postflopRec(A,p,i){
+  const hd=describeHand(p.hole,G.board), dr=drawInfo(p.hole,G.board);
+  A.hd=hd; A.dr=dr; A.outs=dr?dr.outs:0;
+  A.lines.splice(1,0,['当前牌型',`<b>${hd.name}</b>`]);
+  if(dr&&dr.outs) A.lines.splice(2,0,['补牌 outs',`${dr.text}，共 <b>${dr.outs}</b> 张 → ${G.street===1?'×4':'×2'} 法则约 ${dr.est}%${G.street===1?'（看到河牌）':'（下一张）'}`]);
+  const {eq,req,toCall,pot,n}=A;
+  A.vt=n===1?.6:n===2?.46:.38; A.st=n===1?.8:n===2?.66:.56;
+  A.wet=isWet(G.board);
+  A.cbetSpot=G.preAggressor===i&&G.street===1&&toCall===0;
+  const opts=evOptions(A,p); A.opts=opts;
+  const best=opts.reduce((a,b)=>b.ev>a.ev+1e-9?b:a); A.best=best; A.rec={type:best.type,to:best.to};
+  const callO=opts.find(o=>o.type==='call'), chkO=opts.find(o=>o.type==='check');
+  const raises=opts.filter(o=>o.type==='raise'), bestR=raises.length?raises.reduce((a,b)=>b.ev>a.ev?b:a):null;
+  const W=A.why;
+  if(best.type==='fold'){
+    W.push(`胜率 ${pf(eq)} 低于底池赔率要求的 ${pf(req)}，跟注期望 ${fmt(callO.ev)}，弃牌。`);
+    if(bestR) W.push(`加注诈唬也不划算：对手大约只有 ${pf(bestR.fe)} 会弃牌（期望 ${fmt(bestR.ev)}）。`);
+    if(G.street===3) W.push('河牌没有后续牌，只看现在的胜率；之前投入的筹码是沉没成本。');
+  }else if(best.type==='call'){
+    if(callO.imp>0&&eq<req) W.push(`直接赔率不够（${pf(eq)} < ${pf(req)}），但你有 ${dr.outs} 张 outs，后手筹码深，中了能多赢 → <b>隐含赔率</b>让跟注变成正期望（${fmt(callO.ev)}）。`);
+    else W.push(`胜率 ${pf(eq)} ≥ 需要的 ${pf(req)}，跟注是正期望（${fmt(callO.ev)}）。`);
+    if(bestR) W.push(`为什么不加注：加注后更差的牌会弃掉，只有更好的牌继续（加注期望 ${fmt(bestR.ev)}）。`);
+  }else if(best.type==='check'){
+    W.push(eq>=A.vt-.15?`中等牌力（${pf(eq)}），<b>过牌控池</b>：下注时更差的牌大多弃掉，更好的牌会跟甚至加注。`:`胜率 ${pf(eq)} 偏低，过牌免费看牌。`);
+    if(bestR) W.push(`下注的期望（${fmt(bestR.ev)}）不比过牌（${fmt(chkO.ev)}）高：${n>=2?'多人底池很难让所有人都弃牌（弃牌率仅 '+pf(bestR.fe)+'）':'对手弃牌率约 '+pf(bestR.fe)+'，不够支撑诈唬'}。`);
+  }else{
+    const isValue=eq>=A.vt-.05, semi=dr&&dr.outs>=8&&G.street<3;
+    if(isValue) W.push(`胜率 ${pf(eq)}，你多半领先 → <b>价值${toCall>0?'加注':'下注'}</b>，让更差的牌付钱。建议：${best.label}。`);
+    else if(semi) W.push(`<b>半诈唬</b>：你有 ${dr.outs} outs 的听牌，对手弃牌（约 ${pf(best.fe)}）你直接赢，被跟注还能靠补牌赢。`);
+    else W.push(`<b>诈唬</b>：你的胜率只有 ${pf(eq)}，但对手大约 ${pf(best.fe)} 会弃牌；诈唬下注 ${best.to-p.bet} 需要弃牌率 ≥ ${pf((best.to-p.bet)/(pot+best.to-p.bet))} 才保本。`);
+    if(A.cbetSpot&&!isValue) W.push('你是翻前加注者，对手更可能相信你有大牌，这就是<b>持续下注（c-bet）</b>的优势。');
+    if(isValue&&A.wet) W.push('牌面湿润（有同花/顺子可能），别慢打，让听牌付出代价。');
+  }
+  const close=opts.filter(o=>o!==best&&best.ev-o.ev<=Math.max(BBV,.06*pot));
+  if(close.length) W.push(`<span class="muted">差别很小的选择：${close.map(o=>o.label).join('、')}（都可以接受）</span>`);
+  const live=P.filter(q=>q!==p&&!q.folded&&q.style);
+  const st=live.filter(q=>q.style.fold<.2); if(st.length&&best.type!=='raise'&&eq<A.vt) W.push(`<span class="muted">桌上有 ${st.map(q=>q.name).join('、')}（几乎不弃牌），所以诈唬的期望很低。</span>`);
+  const lg=live.filter(q=>q.postAggr>0&&q.style.bluff>=.2); if(lg.length) W.push(`<span class="muted">${lg.map(q=>q.name).join('、')} 经常诈唬，胜率估算已考虑他在诈唬的可能。</span>`);
+}
+
+// ================= 概念卡 =================
+const CONCEPTS={
+  open:['开池范围与位置','位置越靠后，后面没行动的人越少，开池范围可以越宽。枪口约前 15%，庄位约前 45%。没人入池时：要么加注，要么弃牌。'],
+  range:['用范围思考','不要猜对手“具体是什么牌”，而是想他“可能有哪些牌”。紧的人加注范围窄（多是大牌），松的人范围宽。你的牌要和他的范围比。'],
+  setmine:['搏三条的 15 倍法则','小对子翻牌中三条约 1/8。只有当中了以后能从对手那赢回约 15 倍跟注额时，跟注才划算。筹码浅时直接弃。'],
+  threebet:['再加注（3-bet/4-bet）','加注次数越多，对手范围越窄越强。这时只继续最顶端的牌；KQ、AJ 这种“好看”的牌通常是被压制的。'],
+  allin:['全下时的计算','大额下注时把问题简化：我对他范围的胜率是否 ≥ 跟注额 ÷（底池 + 跟注额）。≥ 就跟，否则弃。'],
+  potodds:['底池赔率','需要的胜率 = 跟注额 ÷（底池 + 跟注额）。对手下注越大，你需要的胜率越高。下注半池 → 需要 25%；下注满池 → 需要 33%。'],
+  implied:['隐含赔率','直接赔率不够时，如果听牌中了还能从对手那多赢一些（筹码深、牌隐蔽），跟注仍然可以盈利。河牌没有隐含赔率。'],
+  semibluff:['半诈唬','用听牌下注有两种赢法：对手弃牌直接赢，或被跟注后补中赢。比纯诈唬好得多，也比被动过牌更有利。'],
+  cbet:['持续下注（c-bet）','翻前加注的人在翻牌圈继续下注。对手约 2/3 的时间翻牌没击中，小注（1/3 底池）就常常能赢；干燥牌面效果最好，多人底池慎用。'],
+  value:['价值下注','你领先时下注，是为了让更差的牌付钱。问自己：“如果我下注，什么更差的牌会跟？” 有答案就下注。'],
+  multiway:['多人底池','对手越多，有人击中的概率越高：诈唬很难成功，一对也常常不够好。多人底池要更直接：有牌下注，没牌放弃。'],
+  potcontrol:['控池','中等牌力（例如中对、弱顶对）最怕底池变大。过牌可以免费摊牌，避免被加注逼走。'],
+  riverbluff:['河牌诈唬','河牌没有补牌了，诈唬唯一的赢法是对手弃牌。下注 B 进底池 P，需要对手弃牌率 ≥ B/(P+B)。对跟注站永远不要诈唬。'],
+};
+function concept(A){
+  let k;
+  if(A.street===0) k=A.mode==='open'?'open':A.setMine?'setmine':A.mode==='vsRaise'?'range':A.mode==='allin'?'allin':'threebet';
+  else if(A.street===3&&A.rec.type==='raise'&&A.eq<.4) k='riverbluff';
+  else if(A.dr&&A.dr.outs>=8&&A.street<3) k=A.toCall>0?'implied':'semibluff';
+  else if(A.toCall>0) k='potodds';
+  else if(A.cbetSpot) k='cbet';
+  else if(A.eq>=A.vt) k='value';
+  else if(A.n>=2) k='multiway';
+  else k='potcontrol';
+  return CONCEPTS[k];
+}
+
+// ================= 评分 =================
+const TAG_ADVICE={
+  '翻前过松':'入池的牌太弱了。按位置记开池范围：枪口约前15%，庄位约前45%。面对加注更要收紧。',
+  '翻前过紧':'放弃了有利可图的起手牌。后位和大盲可以更宽。',
+  '翻前被动':'好牌应该主动加注，而不是跟注/溜入。',
+  '赔率不足跟注':'跟注前先算：跟注额 ÷ (底池+跟注额) = 需要的胜率。胜率不够就弃。',
+  '弃掉有利可图的牌':'胜率超过赔率要求时，弃牌就是在送钱。',
+  '错失价值':'有强牌时要下注/加注，让对手为更差的牌付钱。',
+  '缺少主动性':'有听牌或对手容易弃牌时，主动下注（半诈唬/c-bet）比过牌更赚。',
+  '无效诈唬':'诈唬需要对手会弃牌：单挑、对手偏紧、有听牌作后备。对跟注站和多人底池别诈唬。',
+  '加注过于激进':'中等牌加注只会被更好的牌跟注，跟注或过牌即可。',
+  '下注尺度':'下注一般在 1/3 到 1 倍底池之间。价值下注按“更差的牌愿意付多少”来定。',
+};
+function gradePre(A,t){
+  const r=A.rec.type; let g='good', tag=null, note='';
+  if(t===r) return {g,tag,note:'和建议一致 👍'};
+  if(A.mode==='allin'){
+    if(t==='call'){ if(A.eq>=A.req-.04){g='ok';note='胜率与赔率接近，边缘跟注。';} else{g='bad';tag='赔率不足跟注';note=`胜率 ${pf(A.eq)} 明显低于需要的 ${pf(A.req)}。`;} }
+    else if(t==='fold'){ if(A.eq<A.req+.05){g='ok';note='边缘局面，弃牌也可以接受。';} else{g='bad';tag='弃掉有利可图的牌';note=`胜率 ${pf(A.eq)} 高于需要的 ${pf(A.req)}，应该跟注。`;} }
+    else {g='ok';note='牌力足够时加注也可以。';}
+  }else if(r==='raise'){
+    if(t==='fold'){g='bad';tag='翻前过紧';note='这手牌足够强，应该加注入池。';}
+    else {g='ok';tag='翻前被动';note=A.mode==='open'?'没人加注时，好牌应该加注开池，而不是溜入/过牌：溜入让大盲免费看牌，也丢掉了主动权。':'这手牌够 3-bet 做价值，只跟注少赢了钱，也让后面的人便宜入池。';}
+  }else if(r==='call'){
+    if(t==='fold'){ if(A.setMine||A.pct>A.thr*.8){g='ok';note=A.setMine?'搏三条是可选打法，弃牌损失不大。':'接近跟注范围的边缘，弃牌也说得过去。';} else{g='bad';tag='翻前过紧';note='这手牌在跟注范围内，弃得太紧了。';} }
+    else { if(A.pct<=A.thr*.6){g='ok';note='偏激进的 3-bet，偶尔可以。';} else{g='bad';tag='翻前过松';note='这手牌不够强去 3-bet，被 4-bet 就只能弃牌，白白损失。';} }
+  }else if(r==='fold'){
+    const lim=A.thr||.1;
+    if(t==='call'){
+      if(A.scOK){g='ok';note='同花连张有位置时跟注，靠隐含赔率可以接受。';}
+      else if(A.pct<=lim*1.25){g='ok';note='边缘牌，跟注略松。';}
+      else{g='bad';tag='翻前过松';note=`这手牌（前 ${pf(A.pct)}）超出合理范围（约前 ${pf(lim)}）。弱牌入池最常见的结局是：中了小牌输给大牌，没中就白交钱。`;}
+    }else{ if(A.pct<=lim*1.15){g='ok';note='边缘牌加注，偶尔为之可以。';} else{g='bad';tag='翻前过松';note=`这手牌（前 ${pf(A.pct)}）太弱了，加注很容易被更好的牌跟注或反加。`;} }
+  }else if(r==='check'){ g='ok';note='大盲用一般的牌加注，略激进。'; }
+  return {g,tag,note};
+}
+function gradePost(A,t,chEV,p,a){
+  const best=A.best, r=best.type, loss=Math.max(0,best.ev-chEV);
+  const tol1=Math.max(BBV,.06*A.pot), tol2=Math.max(3*BBV,.2*A.pot);
+  let g=loss<=tol1?'good':loss<=tol2?'ok':'bad', tag=null, note='';
+  const {eq,req}=A;
+  if(t===r){
+    note='和建议一致 👍';
+    if(t==='raise'&&a.to!==best.to){ note=`方向正确。尺度：建议 ${best.to}，你选了 ${a.to}${loss>.5?`，期望少了约 ${loss.toFixed(1)}`:''}。`; if(g!=='good') tag='下注尺度'; }
+  }else{
+    const why={
+      'fold>call':[`胜率 ${pf(eq)} 低于需要的 ${pf(req)}。`,'赔率不足跟注'],
+      'fold>raise':[eq<.35?'对手弃牌率不够，这个诈唬多半被跟注。':'落后时加注只会被更好的牌跟注。',eq<.35?'无效诈唬':'加注过于激进'],
+      'check>raise':[eq<.35?'这个对手/局面下诈唬的弃牌率不够。':'中等牌下注：更差的牌弃了，更好的牌会跟。',eq<.35?'无效诈唬':'加注过于激进'],
+      'call>fold':[`胜率 ${pf(eq)} 高于需要的 ${pf(req)}${A.best.imp?'（含隐含赔率）':''}，弃牌放弃了正期望。`,'弃掉有利可图的牌'],
+      'call>raise':['中等牌加注：更差的牌会弃，更好的牌会继续。','加注过于激进'],
+      'raise>call':[eq>=A.vt?'牌很强，跟注偏被动，加注能赢更多。':'这里主动加注（半诈唬）比跟注更好。',eq>=A.vt?'错失价值':'缺少主动性'],
+      'raise>check':[eq>=A.vt?'领先时过牌让对手免费看牌，少赢了钱。':'这里主动下注（c-bet/半诈唬）比过牌更好。',eq>=A.vt?'错失价值':'缺少主动性'],
+      'raise>fold':['你的胜率/弃牌率足够，不该弃牌。','弃掉有利可图的牌'],
+    }[r+'>'+t]||['',''];
+    note=`${why[0]} 你的选择期望 ${fmt(chEV)}，最佳「${best.label}」${fmt(best.ev)}，${loss<=tol1?'差别很小':'损失约 '+loss.toFixed(1)+' 筹码（'+(loss/BBV).toFixed(1)+' BB）'}。`;
+    if(g!=='good') tag=why[1];
+  }
+  if(t==='raise'&&G.cur===0){
+    const frac=(a.to-p.bet)/Math.max(1,A.pot);
+    if(frac<.25&&a.to<p.bet+p.stack) note+=' 下注不到 1/4 底池，给了对手很好的赔率。';
+    if(frac>1.4&&a.to<p.bet+p.stack) note+=' 超池下注只有更强的牌会跟。';
+  }
+  return {g,tag,note,loss};
+}
+function evOf(A,p,a){
+  if(a.type==='fold') return 0;
+  const o=A.opts.find(x=>x.type===a.type&&(a.type!=='raise'||x.to===a.to));
+  if(o) return o.ev;
+  if(a.type==='raise') return raiseEV(A,p,a.to).ev;
+  return 0;
+}
+function recText(A){
+  const r=A.rec;
+  if(A.best&&A.street>0) return A.best.label;
+  if(r.type==='raise') return (A.street===0&&G.preRaises===0?'加注开池到 ':G.preRaises===1?'3-bet 到 ':'加注到 ')+r.to;
+  return {fold:'弃牌',check:'过牌',call:'跟注 '+A.toCall}[r.type];
+}
+function actText(a,A){
+  if(a.type==='raise') return (A.toCall===0&&A.street>0?'下注 ':'加注到 ')+a.to;
+  return {fold:'弃牌',check:'过牌',call:'跟注'}[a.type];
+}
+const GUESS=[[0,.25,'<25%'],[.25,.45,'25–45%'],[.45,.65,'45–65%'],[.65,1.01,'>65%']];
+
+// ================= 摊牌/结算 =================
+function awardFold(){
+  const w=notFolded()[0]; const pot=potTotal(); w.stack+=pot; w.won=pot;
+  log(`<b>${w.name}</b> 赢得底池 ${pot}（其他人弃牌）`);
+  G.result={type:'fold',winner:w,pot};
+}
+function showdown(){
+  const cont=notFolded();
+  cont.forEach(p=>{p.score=evalHand([...p.hole,...G.board]);p.shown=true;});
+  const lv=[...new Set(cont.map(p=>p.totalIn))].sort((a,b)=>a-b);
+  let prev=0; const pots=[];
+  for(const L of lv){
+    let amt=0; P.forEach(p=>{amt+=Math.min(p.totalIn,L)-Math.min(p.totalIn,prev);});
+    const elig=cont.filter(p=>p.totalIn>=L); if(amt>0) pots.push({amt,elig}); prev=L;
+  }
+  for(const pt of pots){
+    const best=Math.max(...pt.elig.map(p=>p.score)); const ws=pt.elig.filter(p=>p.score===best);
+    const share=Math.floor(pt.amt/ws.length); const rem=pt.amt-share*ws.length;
+    ws.forEach(w=>{w.stack+=share;w.won+=share;});
+    if(rem){const o=[...ws].sort((a,b)=>postOrder(P.indexOf(a))-postOrder(P.indexOf(b)));o[0].stack+=rem;o[0].won+=rem;}
+  }
+  cont.forEach(p=>log(`<b>${p.name}</b> 亮牌 ${minis(p.hole)} — ${handName(p.score)}${p.won?` <span class="g-good">赢 ${p.won}</span>`:''}`));
+  G.result={type:'showdown',cont};
+}
+function endHand(){
+  G.over=true; G.toAct=-1; G.analysis=null;
+  const hero=P[0], net=hero.stack-G.heroStart, pos=posOf(0);
+  STATS.hands++; STATS.net+=net; if(G.heroVpip)STATS.vpip++; if(G.heroPfr)STATS.pfr++;
+  const ps=STATS.pos[pos]||(STATS.pos[pos]={h:0,net:0}); ps.h++; ps.net+=net;
+  if(G.result&&G.result.type==='showdown'&&!hero.folded){STATS.wtsd++; if(hero.won>0)STATS.wsd++;}
+  G.sessionNet+=net; G.sessionHands++; G.lastNet=net;
+  // 事后：用对手真实底牌计算当时的真实胜率
+  G.decisions.forEach(d=>{ d.actual=mcEquity(hero.hole,d.board,d.live.map(j=>({fixed:P[j].hole})),1500); });
+  const score=G.decisions.length?G.decisions.reduce((s,d)=>s+(d.g==='good'?1:d.g==='ok'?.5:0),0)/G.decisions.length:null;
+  const rec={no:G.handNo,pos,hole:[...hero.hole],board:[...G.board],net,score,
+    decisions:G.decisions,tl:G.tl,
+    sd:G.result.type==='showdown'?G.result.cont.map(p=>({n:p.name,hole:p.hole,hn:handName(p.score),won:p.won,me:!!p.isHero})):null,
+    winner:G.result.type==='fold'?{n:G.result.winner.name,pot:G.result.pot}:null,
+    fd:P.filter(p=>!p.isHero&&p.folded&&p.totalIn>BBV).map(p=>({n:p.name,hole:p.hole,inv:p.totalIn}))};
+  HIST.unshift(rec); if(HIST.length>60) HIST.length=60;
+  REVIEW_SEL=0;
+  LS.set('pk_stats2',STATS); LS.set('pk_hist',HIST);
+}
+
+// ================= 主循环 =================
+let heroResolve=null;
+async function playHand(){
+  if(G.running) return; G.running=true;
+  startHand(); render(); setTab('coach');
+  while(true){
+    if(notFolded().length===1){awardFold();break;}
+    if(G.toAct===-1){
+      if(G.street===3){showdown();break;}
+      if(canAct().length<=1){
+        notFolded().forEach(p=>p.shown=true); render();
+        await sleep(OPT.speed);
+        while(G.street<3){nextStreet();render();await sleep(Math.max(500,OPT.speed));}
+        showdown();break;
+      }
+      nextStreet(); render(); await sleep(OPT.speed*.8); continue;
+    }
+    const i=G.toAct, p=P[i];
+    if(p.isHero){
+      G.thinking=true; renderActions();
+      const det0=await equityAsync(p.hole,G.board,oppModels(i),G.street===0?2500:3500);
+      G.thinking=false;
+      G.analysis=analyze(i,det0); G.revealed=OPT.hint; G.guess=null; buzz('turn');
+      const minTo=Math.min(G.cur+G.minRaise,p.bet+p.stack);
+      G.raiseTo=G.analysis.rec.type==='raise'?Math.max(minTo,G.analysis.rec.to):minTo;
+      const wait=new Promise(res=>heroResolve=res);
+      render();
+      let a=await wait;
+      const A=G.analysis, maxTo=p.bet+p.stack;
+      if(a.type==='raise') a={type:'raise',to:clamp(Math.round(a.to),minTo,maxTo)};
+      if(a.type==='raise'&&a.to<=G.cur) a={type:G.cur>p.bet?'call':'check'};
+      const chEV=A.street>0?evOf(A,p,a):0;
+      const gr=A.street>0?gradePost(A,a.type,chEV,p,a):gradePre(A,a.type);
+      const guessed=!G.revealed&&G.guess!=null;
+      const d={street:G.street,board:[...G.board],pos:A.pos,eq:A.eq,req:A.req,toCall:A.toCall,pot:A.pot,...gr,
+        why:A.why,live:A.live,concept:A.concept,rec:recText(A),hd:A.hd?A.hd.name:null,
+        opts:A.opts?A.opts.map(o=>({l:o.label,ev:o.ev,best:o===A.best})):null,
+        prob:probRows(A).map(([t,ls])=>[t,ls])};
+      if(guessed){const [lo,hi,lbl]=GUESS[G.guess];d.guess=lbl;d.guessOK=A.eq>=lo&&A.eq<hi;STATS.guessN++;if(d.guessOK)STATS.guessOK++;}
+      const done=applyAction(i,a); d.act=actText(done,A);
+      G.decisions.push(d);
+      STATS.dec++; const pts=gr.g==='good'?1:gr.g==='ok'?.5:0; STATS.score+=pts; STATS[gr.g]++;
+      STATS.st[d.street][0]++; STATS.st[d.street][1]+=pts;
+      if(gr.loss) STATS.evLoss+=gr.loss;
+      if(gr.tag) STATS.tags[gr.tag]=(STATS.tags[gr.tag]||0)+1;
+      if(gr.g==='bad') buzz('bad');
+      G.analysis=null;
+    }else{
+      render(); await sleep(OPT.speed);
+      applyAction(i,botDecide(i));
+    }
+    G.toAct=nextToAct(i); render();
+  }
+  endHand(); G.running=false; render();
+  if(G.decisions.length) setTab('review');
+}
+function heroAct(a){ if(heroResolve){const r=heroResolve;heroResolve=null;r(a);} }
+
+// ================= 渲染 =================
+const SEAT_POS=[[50,89],[9,68],[12,21],[50,8],[88,21],[91,68]];
+const SEAT_POS_M=[[50,87],[14,68],[14,30],[50,14],[86,30],[86,68]];
+function render(){ renderHeader(); renderTable(); renderActions(); renderLog(); renderTab(); if(typeof renderChat==='function'&&!CHAT.busy) renderChat(); }
+function renderHeader(){
+  const s=STATS, acc=s.dec?s.score/s.dec:0;
+  $('#hdr').innerHTML=[
+    ['x',`本次 <b>${G.sessionHands}</b> 手`],
+    ['',`${MOBILE?'':'本次盈亏 '}<b class="${G.sessionNet>=0?'g-good':'g-bad'}">${G.sessionNet>=0?'+':''}${(G.sessionNet/BBV).toFixed(1)} BB</b>`],
+    ['',`${MOBILE?'得分':'决策得分'} <b>${s.dec?Math.round(acc*100):'-'}</b>`],
+    ['x',`VPIP <b>${s.hands?pf(s.vpip/s.hands):'-'}</b>`],
+    ['x',`PFR <b>${s.hands?pf(s.pfr/s.hands):'-'}</b>`],
+  ].map(([c,x])=>`<span class="chip ${c}">${x}</span>`).join('');
+}
+function renderTable(){
+  const b=[];for(let k=0;k<5;k++) b.push(cardHTML(G.board[k]??null));
+  $('#board').innerHTML=b.join('');
+  const collected=P.reduce((s,p)=>s+(p.totalIn||0)-(p.bet||0),0);
+  $('#pot').textContent=G.handNo?`底池 ${G.over?0:collected}`:'';
+  $('#street').textContent=G.handNo?(G.over?'本手结束':STREET[G.street]):'点击下方「开始」发牌';
+  const best=G.result&&G.result.type==='showdown'?Math.max(...G.result.cont.map(p=>p.score)):null;
+  let html='';
+  P.forEach((p,i)=>{
+    const [x,y]=(MOBILE?SEAT_POS_M:SEAT_POS)[i];
+    const show=p.isHero||p.shown||(G.over&&p.folded&&p.totalIn>BBV);
+    const cards=p.hole&&p.hole.length?(p.folded&&!p.isHero&&!show?'':p.hole.map(c=>cardHTML(show?c:-1,'sm'+(best!=null&&p.shown&&p.score===best?' hl':''))).join('')):'';
+    const pos=G.handNo?posOf(i):'';
+    const cls=['seat',G.toAct===i&&!G.over?'turn':'',p.folded?'folded':''].join(' ');
+    let last=p.last||''; if(G.over&&p.won) last=`<span class="win">赢 ${p.won}</span>`;
+    if(G.over&&p.shown&&p.score) last+=` <span class="muted">${handName(p.score)}</span>`;
+    html+=`<div class="${cls}" style="left:${x}%;top:${y}%"><div class="cards">${cards}</div><div class="box">${pos==='BTN'?'<div class="btnb">D</div>':''}
+      <div class="nm">${p.name}${pos?`<span class="posb">${pos}</span>`:''}</div>
+      ${p.style?`<div class="tag">${p.style.tag}</div>`:''}
+      <div class="stk">${p.stack}${p.allIn&&!G.over?' · 全下':''}</div>
+      <div class="last">${last}</div></div></div>`;
+    if(p.bet&&!G.over){const bx=x+(50-x)*.38,by=y+(48-y)*.42;html+=`<div class="betchip" style="left:${bx}%;top:${by}%">${p.bet}</div>`;}
+  });
+  $('#seats').innerHTML=html;
+}
+function renderActions(){
+  const el=$('#actions');
+  const heroTurn=!G.over&&G.toAct===0&&heroResolve;
+  if(!heroTurn){
+    if(G.over||!G.handNo){
+      let msg='';
+      if(G.handNo){const n=G.lastNet;msg=`<span class="muted">本手${n>=0?'赢':'输'} <b class="${n>=0?'g-good':'g-bad'}">${Math.abs(n)}</b>（${(n/BBV).toFixed(1)} BB）· 右侧「复盘」查看详细分析</span>`;}
+      el.innerHTML=`<button class="btn go" id="bNext">${G.handNo?'下一手':'开始'}<span class="k">N / 空格</span></button>${msg}`;
+      $('#bNext').onclick=()=>playHand();
+    }else el.innerHTML=`<span class="muted">${G.thinking?'教练计算中…':'对手行动中…'}</span>`;
+    return;
+  }
+  const p=P[0], toCall=Math.min(G.cur-p.bet,p.stack), A=G.analysis, rec=G.revealed?A.rec.type:'';
+  const maxTo=p.bet+p.stack, minTo=Math.min(G.cur+G.minRaise,maxTo), canRaise=p.stack>toCall&&maxTo>G.cur;
+  const pot=potTotal(); const isBet=G.cur===0;
+  const presets=[];
+  if(G.street===0){ if(G.preRaises===0){[2.5,3,4].forEach(m=>presets.push([m+'BB',Math.round(m*BBV)]));} else {[2.5,3,4].forEach(m=>presets.push([m+'x',Math.round(G.cur*m)]));} }
+  else if(isBet){[[.33,'1/3'],[.5,'1/2'],[.75,'3/4'],[1,'底池']].forEach(([f,l])=>presets.push([l,Math.max(BBV,Math.round(pot*f))]));}
+  else{[2.5,3].forEach(m=>presets.push([m+'x',Math.round(G.cur*m)]));presets.push(['底池',G.cur+pot+toCall]);}
+  presets.push(['全下',maxTo]);
+  el.innerHTML=`
+    <button class="btn fold ${rec==='fold'?'rec':''}" id="bF" ${toCall===0?'disabled':''}>弃牌<span class="k">F</span></button>
+    <button class="btn call ${(rec==='call'||rec==='check')?'rec':''}" id="bC">${toCall===0?'过牌':(toCall>=p.stack?'跟注全下 ':'跟注 ')+(toCall||'')}<span class="k">C</span></button>
+    ${canRaise?`<div class="raisebox">
+      <button class="btn raise ${rec==='raise'?'rec':''}" id="bR">${isBet?'下注':'加注到'} <span id="rTo">${G.raiseTo}</span><span class="k">R</span></button>
+      <input type="range" id="rS" min="${minTo}" max="${maxTo}" step="1" value="${G.raiseTo}">
+      <input type="number" id="rN" min="${minTo}" max="${maxTo}" value="${G.raiseTo}">
+      ${presets.map(([l,v])=>`<button class="preset" data-v="${clamp(v,minTo,maxTo)}">${l}</button>`).join('')}
+    </div>`:''}`;
+  $('#bF').onclick=()=>heroAct({type:'fold'});
+  $('#bC').onclick=()=>heroAct({type:toCall===0?'check':'call'});
+  if(canRaise){
+    const setR=v=>{v=clamp(Math.round(+v||minTo),minTo,maxTo);G.raiseTo=v;$('#rTo').textContent=v;$('#rS').value=v;$('#rN').value=v;};
+    $('#rS').oninput=e=>setR(e.target.value);
+    $('#rN').onchange=e=>setR(e.target.value);
+    el.querySelectorAll('.preset').forEach(b=>b.onclick=()=>setR(b.dataset.v));
+    $('#bR').onclick=()=>heroAct({type:'raise',to:G.raiseTo});
+  }
+}
+function renderLog(){const el=$('#log');el.innerHTML=G.log.map(l=>`<div>${l}</div>`).join('');el.scrollTop=el.scrollHeight;}
+
+let TAB='coach', CHART_POS=null, REVIEW_SEL=0, REVIEW_FILTER='all';
+// 手机：VIEW 决定显示牌桌还是整页（复盘/学习/统计/问教练/设置）；桌面：TAB 决定右栏内容
+const MQ=matchMedia('(max-width:820px)'); let MOBILE=MQ.matches;
+let VIEW='table', SHEET_OPEN=LS.get('pk_sheet',false);
+MQ.addEventListener('change',e=>{MOBILE=e.matches;applyView();render();});
+function setTab(t){TAB=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));renderTab.last=null;renderTab();}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.t));
+function setView(v){
+  if(!MOBILE){ if(v==='chat'){CHAT.open=true;renderChat();$('#chatIn').focus();} else setTab(v==='table'?'coach':v); return; }
+  VIEW=v; if(v==='table') TAB='coach'; else if(v!=='chat') TAB=v;
+  renderTab.last=null; applyView(); render();
+  $('#tabbody').scrollTop=0;
+}
+function applyView(){
+  document.body.classList.toggle('page',MOBILE&&VIEW!=='table');
+  document.body.classList.toggle('page-chat',MOBILE&&VIEW==='chat');
+  document.querySelectorAll('#bnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===VIEW));
+}
+document.querySelectorAll('#bnav button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+$('#gearBtn').onclick=()=>MOBILE?setView(VIEW==='settings'?'table':'settings'):setTab(TAB==='settings'?'coach':'settings');
+function pageHTML(t){
+  return ({coach:tabCoach,review:tabReview,chart:tabChart,stats:tabStats,learn:tabLearn,settings:tabSettings,
+    learnAll:()=>tabLearn(true)})[t]();
+}
+function renderTab(){
+  if(MOBILE){
+    renderSheet();
+    if(VIEW==='table'||VIEW==='chat') return;
+    const key=VIEW==='learn'?'learnAll':VIEW;
+    if(key==='settings'&&renderTab.last==='settings') return; // 别在输入时把设置页刷新掉
+    const el=$('#tabbody'), keep=renderTab.last===key?el.scrollTop:0;
+    el.innerHTML=pageHTML(key); el.scrollTop=keep; renderTab.last=key; bindActs(el);
+    return;
+  }
+  if(TAB==='settings'&&renderTab.last==='settings') return;
+  const el=$('#tabbody'), keep=TAB===renderTab.last?el.scrollTop:0;
+  el.innerHTML=pageHTML(TAB);
+  el.scrollTop=TAB==='coach'&&G.analysis&&renderTab.lastA!==G.analysis?0:keep;
+  renderTab.last=TAB; renderTab.lastA=G.analysis;
+  bindActs(el);
+}
+function sheetSummary(){
+  const A=G.analysis;
+  if(!G.handNo) return '<b>教练</b><span class="sm-txt muted">上拉查看玩法说明</span>';
+  if(G.thinking) return '<span class="muted">教练计算中…</span>';
+  if(A&&!G.over){
+    if(!G.revealed) return '<b class="g-ok">轮到你</b><span class="sm-txt muted">先自己想 · 上拉看思考清单</span>';
+    return `<b style="color:var(--gold)" class="sm-txt">建议 ${recText(A)}</b><span class="muted">胜率 ${pf(A.eq)}${A.toCall?' / 需 '+pf(A.req):''}</span>`;
+  }
+  if(G.over){
+    const n=G.lastNet, r=HIST[0], sc=r&&r.no===G.handNo&&r.score!=null?` · 得分 ${Math.round(r.score*100)}`:'';
+    return `<b class="${n>=0?'g-good':'g-bad'}">本手 ${n>=0?'+':''}${(n/BBV).toFixed(1)} BB</b><span class="muted">${sc}</span>${G.decisions.length?'<button class="btn sm" data-act="view:review" style="margin-left:6px">看复盘</button>':''}`;
+  }
+  const d=G.decisions[G.decisions.length-1];
+  if(d) return `<span class="g-${d.g}">${GT[d.g]}</span><span class="sm-txt muted">你：${d.act}${d.g!=='good'?' · 建议 '+d.rec:''}</span>`;
+  return '<span class="muted">对手行动中…</span>';
+}
+function renderSheet(){
+  if(!MOBILE) return;
+  $('#sheet').classList.toggle('open',SHEET_OPEN);
+  const hd=$('#sheetHd'), body=$('#sheetBody');
+  hd.innerHTML=sheetSummary()+`<span class="chev">${SHEET_OPEN?'▾':'▴'}</span>`;
+  bindActs(hd);
+  if(!SHEET_OPEN) return;
+  const keep=body.scrollTop, fresh=renderSheet.lastA!==G.analysis;
+  body.innerHTML=tabCoach()+(G.log.length?`<div class="sec"><h4>行动记录</h4><div class="mlog">${G.log.slice(-30).map(l=>`<div>${l}</div>`).join('')}</div></div>`:'');
+  body.scrollTop=fresh&&G.analysis?0:keep; renderSheet.lastA=G.analysis;
+  bindActs(body);
+}
+$('#sheetHd').onclick=e=>{ if(e.target.closest('[data-act]')) return; SHEET_OPEN=!SHEET_OPEN; LS.set('pk_sheet',SHEET_OPEN); renderSheet(); };
+function bindActs(root){
+  root.querySelectorAll('[data-act]').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();
+    const a=b.dataset.act;
+    if(a==='reveal'){G.revealed=true;render();}
+    if(a==='start')playHand();
+    if(a==='reset'){if(confirm('确定清空所有统计和复盘记录？')){STATS=DEF_STATS();HIST=[];LS.set('pk_stats2',STATS);LS.set('pk_hist',HIST);renderTab.last=null;render();}}
+    if(a.startsWith('pos:')){CHART_POS=a.slice(4);renderTab();}
+    if(a.startsWith('guess:')){G.guess=+a.slice(6);render();}
+    if(a.startsWith('sel:')){REVIEW_SEL=+a.slice(4);renderTab();}
+    if(a.startsWith('filt:')){REVIEW_FILTER=a.slice(5);renderTab();}
+    if(a.startsWith('view:')) setView(a.slice(5));
+    if(a==='askHand'){ if(MOBILE){VIEW='chat';applyView();} else {CHAT.open=true;} renderChat(); $('#chatIn').focus(); }
+    if(a==='saveKey'){const v=$('#setKey').value.trim();if(v){OPT.dsKey=v;saveOpt();}$('#setKey').value='';renderTab.last=null;renderTab();chatStatus();}
+    if(a==='clearKey'){delete OPT.dsKey;saveOpt();renderTab.last=null;renderTab();chatStatus();}
+    if(a==='testKey'){testKey();}
+    if(a.startsWith('qz:')){answerQuiz(+a.slice(3));renderTab();}
+    if(a==='qznext'){QUIZ=makeQuiz();renderTab();}
+  });
+  root.querySelectorAll('details[data-k]').forEach(el=>el.ontoggle=()=>{if(OPT[el.dataset.k]!==el.open){OPT[el.dataset.k]=el.open;saveOpt();}});
+  root.querySelectorAll('[data-opt]').forEach(el=>el.onchange=()=>{
+    const k=el.dataset.opt; OPT[k]=el.type==='checkbox'?el.checked:(k==='speed'?+el.value:el.value); saveOpt(); syncOpts(); chatStatus();
+  });
+}
+const GT={good:'✅ 很好',ok:'🟡 可以接受',bad:'❌ 失误'};
+function fbHTML(d,full){
+  let h=`<div class="fb ${d.g}"><div class="h">${STREET[d.street]}${d.board.length?' '+minis(d.board):''} · 你：${d.act} <span class="g-${d.g}">${GT[d.g]}</span></div>
+    <div class="sub">教练建议：${d.rec}${d.tag?` · 问题：<b>${d.tag}</b>`:''}</div><div>${d.note}</div>`;
+  if(d.guess) h+=`<div class="sub">你猜胜率 ${d.guess}，教练估算 ${pf(d.eq)} ${d.guessOK?'<span class="g-good">✓ 猜对了</span>':'<span class="g-bad">✗ 偏差较大</span>'}</div>`;
+  if(full){
+    h+=`<div class="sub">决策时估算胜率 ${pf(d.eq)}${d.toCall?`（需要 ${pf(d.req)}）`:''}${d.actual!=null?` · 对手真实底牌下你的胜率 <b>${pf(d.actual)}</b>`:''}</div>`;
+    if(d.hd) h+=`<div class="sub">牌型：${d.hd}</div>`;
+    if(d.opts&&d.opts.length>1) h+=`<div class="sub">各选项期望：${d.opts.map(o=>`${o.best?'<b>':''}${o.l} ${fmt(o.ev)}${o.best?'</b>':''}`).join('，')}</div>`;
+    if(d.g!=='good') h+=`<ul>${d.why.map(w=>`<li>${w}</li>`).join('')}</ul>`;
+    if(d.prob&&d.prob.length) h+=`<details class="rprob"><summary>🧮 当时的概率手算</summary>${d.prob.map(([t,ls])=>`<div class="sub" style="margin-top:4px"><b>${t}</b></div><ul>${ls.map(x=>`<li>${x}</li>`).join('')}</ul>`).join('')}</details>`;
+  }
+  return h+'</div>';
+}
+function eqBar(A){
+  return `<div class="bar"><i style="width:${A.eq*100}%"></i>${A.toCall>0?`<em style="left:${A.req*100}%"></em>`:''}</div>
+  <div class="muted small" style="margin-top:2px">绿色 = 你的胜率${A.toCall>0?'；红线 = 跟注所需胜率（绿条越过红线才划算）':''}</div>`;
+}
+function evTable(A){
+  if(!A.opts||A.opts.length<2) return '';
+  return `<table class="evt">${A.opts.map(o=>`<tr class="${o===A.best?'best':''}"><td>${o===A.best?'★ ':''}${o.label}</td><td>${fmt(o.ev)}</td><td>${o.fe!=null?'对手弃牌率 '+pf(o.fe):o.imp?'含隐含赔率 '+o.imp.toFixed(1):o.note||''}</td></tr>`).join('')}</table>
+  <div class="muted small" style="margin-top:4px">期望值单位：筹码。简化模型：只算到本街，被跟注时按对手更强的跟注范围折算胜率，弃牌率按对手风格和下注大小估计。</div>`;
+}
+function oppNotes(){
+  const live=P.filter(q=>q.style&&!q.folded);
+  if(!live.length) return '';
+  return `<div class="sec"><h4>对手读牌</h4>${live.map(q=>`<div class="oppnote"><b>${q.name}</b> <span class="muted">${q.style.tag}</span><br>
+    ${q.range<1?`翻前范围约前 ${pf(q.range)}：<code>${rangeText(q.range)}</code><br>`:''}
+    ${q.postAggr>0?'翻后主动下注过 → 范围偏向成牌和听牌<br>':''}
+    <span class="muted">对策：</span>${q.style.exploit}</div>`).join('')}</div>`;
+}
+function tabCoach(){
+  if(!G.handNo) return `<div class="sec"><h4>欢迎</h4>
+    <p>6 人桌，盲注 1/2，每人 200（100BB）。5 个电脑对手的名字就是他们的风格：<b>紧弱、松弱、紧凶、松凶、平衡</b>。学会针对不同风格调整，是赢钱最快的方法。</p>
+    <p>轮到你时，教练会给出：<b>建议和理由、各选项期望值、本步核心概念、底池赔率、胜率、outs、对手范围</b>。你行动后会按“损失了多少期望值”打分，一手结束后在「复盘」里能看到整手时间线和对手真实底牌。</p>
+    <p class="muted">想检验自己？关掉顶部「行动前显示建议」：先自己猜胜率、做决定，再看点评。快捷键：F 弃牌 · C 过牌/跟注 · R 加注 · H 看提示 · 1–4 猜胜率 · N 下一手。</p>
+    <button class="btn go" data-act="start">开始第一手</button></div>`;
+  let h='';
+  const A=G.analysis;
+  if(A&&!G.over){
+    if(!G.revealed){
+      h+=`<div class="sec think"><div style="font-size:15px;font-weight:600">轮到你了：${STREET[G.street]} · ${POS_CN[A.pos]}</div>
+        <ol class="small" style="font-size:13px"><li>我的位置？后面还有几个人？</li><li>对手是什么风格？他的范围大概有哪些牌？</li><li>${A.toCall?`底池 ${A.pot}，跟注 ${A.toCall}：我需要多少胜率？`:'没人下注：我下注是为了价值、诈唬，还是该过牌？'}</li><li>我的牌对他的范围大概有多少胜率？</li><li>我的计划：这条街和下一条街分别怎么打？</li></ol>
+        <div class="muted small">先猜一下你的胜率（按 1–4）：</div>
+        <div class="guess">${GUESS.map((g,k)=>`<button data-act="guess:${k}" class="${G.guess===k?'on':''}">${g[2]}</button>`).join('')}</div>
+        <button class="btn sm" data-act="reveal">显示教练分析（H）</button></div>`;
+    }else{
+      h+=`<div class="sec recbox"><div class="muted small">教练建议</div><div class="big">${recText(A)}</div><ul>${A.why.map(w=>`<li>${w}</li>`).join('')}</ul>${tipsLine(A)}${evTable(A)}</div>`;
+      h+=`<div class="sec concept"><b>📘 本步概念：${A.concept[0]}</b><p>${A.concept[1]}</p></div>`;
+      h+=`<div class="sec"><h4>局面数据</h4><div class="kv">${A.lines.map(([k,v])=>`<div class="k">${k}</div><div>${v}</div>`).join('')}</div>${eqBar(A)}</div>`;
+      h+=probCalcHTML(A)+eqExplainHTML(A);
+      h+=oppNotes();
+    }
+  }else if(!G.over){
+    h+=`<div class="muted" style="padding:4px 0 12px">对手行动中…</div>`;
+  }
+  if(G.decisions.length) h+=`<div class="sec"><h4>本手你的决策</h4>${[...G.decisions].reverse().map(d=>fbHTML(d,false)).join('')}</div>`;
+  if(G.over) h+=`<div class="muted">本手结束，查看「复盘」或按 N 继续。</div>`;
+  return h;
+}
+function verdict(r){
+  if(r.score==null) return `<div class="verdict v2">这手你没有需要做的决策（盲注被偷或直接结束）。</div>`;
+  const s=r.score, n=r.net;
+  if(n<0&&s>=.8) return `<div class="verdict v1"><b>输了，但你打得对。</b> 这是正常的方差（运气波动）。德州评价的是决策质量，不是单手输赢——同样的决策打 1000 次你会赢钱。</div>`;
+  if(n>=0&&s<.6) return `<div class="verdict v3"><b>赢了，但有明显失误。</b> 别被结果骗了：这次赢是运气，同样的打法长期会亏。重点看下面的 ❌。</div>`;
+  if(n<0&&s<.6) return `<div class="verdict v3"><b>输在决策上。</b> 看看哪一步偏离了赔率或范围，下次遇到同样局面就知道怎么做。</div>`;
+  return `<div class="verdict v1"><b>${n>0?'赢得漂亮':'打得稳健'}。</b> 决策得分 ${Math.round(s*100)}。</div>`;
+}
+function reviewHTML(r){
+  let h=`<div class="sec"><h4>第 ${r.no} 手 · ${POS_CN[r.pos]} ${r.pos} · ${minis(r.hole)} ${r.board.length?'· 公共牌 '+minis(r.board):''}</h4>
+    <div>结果：<b class="${r.net>=0?'g-good':'g-bad'}">${r.net>=0?'+':''}${r.net}</b>（${(r.net/BBV).toFixed(1)} BB）${r.score!=null?`　决策得分 <b>${Math.round(r.score*100)}</b>`:''}</div>
+    <button class="btn sm" data-act="askHand" style="margin-top:6px">💬 问教练这一手</button></div>`;
+  h+=verdict(r);
+  h+=`<div class="sec"><h4>整手时间线</h4>`;
+  r.tl.forEach(s=>{
+    h+=`<div class="st"><h5>${STREET[s.s]} ${s.board.length?minis(s.board):''} ${s.s?`<span class="muted small">底池 ${s.pot}</span>`:''}</h5>`;
+    s.acts.forEach(a=>{
+      if(a.h&&a.d!=null&&r.decisions[a.d]) h+=fbHTML(r.decisions[a.d],true);
+      else h+=`<div class="act"><b>${a.n}</b> ${a.l}</div>`;
+    });
+    h+='</div>';
+  });
+  h+='</div>';
+  if(r.sd) h+=`<div class="sec"><h4>摊牌</h4>${r.sd.map(p=>`<div>${p.me?'<b>你</b>':p.n}：${minis(p.hole)} ${p.hn}${p.won?` <span class="g-good">赢 ${p.won}</span>`:''}</div>`).join('')}</div>`;
+  else if(r.winner) h+=`<div class="sec"><h4>结果</h4>${r.winner.n} 在其他人弃牌后赢得 ${r.winner.pot}</div>`;
+  if(r.fd.length) h+=`<div class="sec"><h4>弃牌对手的底牌（学习用）</h4>${r.fd.map(p=>`<div class="muted">${p.n}：${minis(p.hole)}（投入 ${p.inv} 后弃牌）</div>`).join('')}</div>`;
+  const misses=r.decisions.filter(d=>d.actual!=null&&Math.abs(d.actual-d.eq)>.3);
+  if(misses.length) h+=`<div class="sec"><h4>估算 vs 真实</h4><div class="lesson"><p>有 ${misses.length} 次决策中，对手真实的牌和“范围估算”差距很大。这很正常：我们只能根据范围做决定，对手的具体牌每次都不一样。<b>按范围做对的决定，长期就会赢。</b></p></div></div>`;
+  const lessons=[...new Set(r.decisions.filter(d=>d.tag).map(d=>d.tag))];
+  const cons=[...new Map(r.decisions.map(d=>[d.concept[0],d.concept])).values()];
+  if(lessons.length||cons.length) h+=`<div class="sec"><h4>本手要点</h4>${lessons.map(t=>`<div class="lesson"><b>⚠️ ${t}</b><p>${TAG_ADVICE[t]}</p></div>`).join('')}${cons.map(c=>`<div class="lesson"><b>📘 ${c[0]}</b><p>${c[1]}</p></div>`).join('')}</div>`;
+  return h;
+}
+function tabReview(){
+  if(!HIST.length) return '<div class="muted">还没有打完的牌局。打完一手后这里会出现完整复盘。</div>';
+  const list=HIST.map((r,k)=>({r,k})).filter(({r})=>REVIEW_FILTER==='all'||(REVIEW_FILTER==='bad'?r.decisions.some(d=>d.g==='bad'):r.net<0));
+  let h=`<div class="filt">${[['all','全部'],['bad','有失误'],['lose','输钱的']].map(([k,l])=>`<button data-act="filt:${k}" class="${REVIEW_FILTER===k?'on':''}">${l}</button>`).join('')}<span class="muted small" style="margin-left:auto;align-self:center">最近 ${HIST.length} 手</span></div>`;
+  h+=`<div class="hlist">${list.map(({r,k})=>{const nb=r.decisions.filter(d=>d.g==='bad').length;return `<div class="hrow ${k===REVIEW_SEL?'on':''}" data-act="sel:${k}"><span class="muted">#${r.no}</span><span>${r.pos}</span><span>${minis(r.hole)}</span><span class="${r.net>=0?'g-good':'g-bad'}">${r.net>=0?'+':''}${(r.net/BBV).toFixed(1)}BB</span><span>${r.score==null?'<span class="muted">—</span>':nb?`<span class="g-bad">❌${nb}</span>`:`<span class="g-good">${Math.round(r.score*100)}</span>`}</span></div>`}).join('')||'<div class="muted small">没有符合条件的牌局。</div>'}</div>`;
+  const r=HIST[REVIEW_SEL]; if(r) h+=reviewHTML(r);
+  return h;
+}
+function tabChart(){
+  const pos=CHART_POS||(G.handNo?posOf(0):'BTN');
+  const thr=OPEN[pos]; const myKey=G.handNo&&P[0].hole.length?handKey(P[0].hole[0],P[0].hole[1]):null;
+  let cells='';
+  for(let a=14;a>=2;a--) for(let b=14;b>=2;b--){
+    const h=Math.max(a,b),l=Math.min(a,b),s=a>b;
+    const k=keyOf(h,l,h!==l&&s); const p=PCT[k];
+    const cls=p<=.035?'t3':p<=thr?'t2':p<=thr*1.3?'t1':'';
+    cells+=`<div class="${cls} ${k===myKey?'me':''}" title="${k} 前${pf(p)}">${k}</div>`;
+  }
+  return `<div class="sec"><h4>开池范围（没人加注时可以加注入池的牌）</h4>
+    <div class="posbtns">${['UTG','MP','CO','BTN','SB'].map(x=>`<button data-act="pos:${x}" class="${x===pos?'on':''}">${POS_CN[x]} ${x}</button>`).join('')}</div>
+    <div class="grid13">${cells}</div>
+    <div class="legend"><span style="--c:#b8862b">顶级（可 3-bet 做价值）</span><span style="--c:#2f8a5a">开池加注</span><span style="--c:#285a40">边缘（看对手/牌桌调整）</span><span style="--c:#26302a">弃牌</span></div>
+    <p class="muted small">${POS_CN[pos]}约开池前 ${pf(thr)}：<code>${rangeText(thr)}</code></p>
+    <p class="muted small">右上三角是同花（s），左下是不同花（o），对角线是对子；白框是你当前的手牌。越靠后的位置越宽，因为后面要行动的人越少，而且翻后有位置。</p></div>`;
+}
+function tabStats(){
+  const s=STATS, acc=s.dec?s.score/s.dec:0;
+  const tags=Object.entries(s.tags).sort((a,b)=>b[1]-a[1]);
+  const vp=s.hands?s.vpip/s.hands:0, pr=s.hands?s.pfr/s.hands:0;
+  const adv=[];
+  if(s.hands>=30){
+    if(vp>.32) adv.push('VPIP 偏高：你玩的牌太多了，收紧前位范围。');
+    if(vp<.16) adv.push('VPIP 偏低：可以在后位/大盲多玩一些牌。');
+    if(vp-pr>.1) adv.push('VPIP 与 PFR 差距大：你跟注太多、加注太少，好牌请主动加注。');
+  }
+  const stRows=s.st.map((x,k)=>`<tr><td>${STREET[k]}</td><td>${x[0]}</td><td>${x[0]?Math.round(x[1]/x[0]*100):'-'}</td></tr>`).join('');
+  const posRows=['UTG','MP','CO','BTN','SB','BB'].map(p=>{const v=s.pos[p];return `<tr><td>${POS_CN[p]} ${p}</td><td>${v?v.h:0}</td><td class="${v&&v.net>=0?'g-good':'g-bad'}">${v?(v.net/BBV).toFixed(1):'-'}</td></tr>`;}).join('');
+  return `<div class="sec statgrid">
+    <div class="stat"><div class="v">${s.hands}</div><div class="l">总手数</div></div>
+    <div class="stat"><div class="v ${s.net>=0?'g-good':'g-bad'}">${s.hands?((s.net/BBV)/s.hands*100).toFixed(1):'-'}</div><div class="l">bb/100（每百手盈利）</div></div>
+    <div class="stat"><div class="v">${s.dec?Math.round(acc*100):'-'}</div><div class="l">决策得分（${s.dec} 次决策）</div></div>
+    <div class="stat"><div class="v g-bad">${(s.evLoss/BBV).toFixed(1)} BB</div><div class="l">翻后决策累计损失期望</div></div>
+    <div class="stat"><div class="v">${s.hands?pf(vp):'-'}</div><div class="l">VPIP 入池率（参考 22–28%）</div></div>
+    <div class="stat"><div class="v">${s.hands?pf(pr):'-'}</div><div class="l">PFR 翻前加注率（参考 17–23%）</div></div>
+    <div class="stat"><div class="v">${s.wtsd?pf(s.wsd/s.wtsd):'-'}</div><div class="l">摊牌胜率（参考 >50%）</div></div>
+    <div class="stat"><div class="v">${s.guessN?pf(s.guessOK/s.guessN):'-'}</div><div class="l">胜率估算准确率（${s.guessN} 次）</div></div>
+  </div>
+  <div class="sec"><h4>决策分布</h4><div><span class="g-good">✅ ${s.good}</span>　<span class="g-ok">🟡 ${s.ok}</span>　<span class="g-bad">❌ ${s.bad}</span>　<span class="muted small">累计盈亏 ${(s.net/BBV).toFixed(0)} BB，重买 ${s.rebuys} 次</span></div></div>
+  <div class="sec"><h4>你最常见的问题</h4>${tags.length?tags.slice(0,5).map(([t,c])=>`<div class="lesson"><b>${t} × ${c}</b><p>${TAG_ADVICE[t]||''}</p></div>`).join(''):'<div class="muted">暂无，继续打牌积累数据。</div>'}</div>
+  ${adv.length?`<div class="sec"><h4>风格建议</h4>${adv.map(a=>`<div class="lesson"><p>${a}</p></div>`).join('')}</div>`:''}
+  <div class="sec"><h4>按街道的决策得分</h4><table class="ptable"><tr><th>街道</th><th>决策数</th><th>得分</th></tr>${stRows}</table></div>
+  <div class="sec"><h4>按位置盈亏（BB）</h4><table class="ptable"><tr><th>位置</th><th>手数</th><th>盈亏</th></tr>${posRows}</table>
+  <p class="muted small">正常规律：庄位、关煞最赚钱，大小盲亏得最多（被迫投入且没位置）。如果你在前位亏很多，说明前位玩得太松。</p></div>
+  <button class="btn sm" data-act="reset">清空统计和复盘</button>`;
+}
+// DeepSeek 预设：模型 + 是否开启思考模式
+const AI_PRESETS={
+  flash:{model:'deepseek-flash',think:false,label:'Flash 快速回答（推荐）'},
+  flashThink:{model:'deepseek-flash',think:true,label:'Flash 深度思考（慢一些，更严谨）'},
+  pro:{model:'deepseek-v4-pro',think:true,label:'V4 Pro 最强（较慢、较贵）'},
+};
+const aiPreset=()=>AI_PRESETS[OPT.ai]||AI_PRESETS.flash;
+function tabSettings(){
+  const k=OPT.dsKey;
+  return `<div class="sec"><h4>练习</h4>
+    <label class="setrow">行动前显示教练建议<input type="checkbox" data-opt="hint" ${OPT.hint?'checked':''}></label>
+    <label class="setrow">对手行动速度<select data-opt="speed">${[[1100,'慢'],[650,'中'],[250,'快']].map(([v,l])=>`<option value="${v}" ${OPT.speed===v?'selected':''}>${l}</option>`).join('')}</select></label>
+    <label class="setrow">振动反馈（轮到你 / 失误）<input type="checkbox" data-opt="haptics" ${OPT.haptics?'checked':''}></label>
+  </div>
+  <div class="sec"><h4>问教练（大模型）</h4>
+    <div class="muted small">使用 DeepSeek。填入 DeepSeek API 密钥（在 platform.deepseek.com 创建）后，提问会从本机直接发给 DeepSeek。密钥只保存在这台设备的应用数据里，不会出现在页面上。</div>
+    <div class="setrow" style="border:none">密钥状态<b class="${k?'g-good':'g-bad'}">${k?'已保存（…'+esc(k.slice(-4))+'）':'未设置'}</b></div>
+    <input class="setin" id="setKey" type="password" autocomplete="off" placeholder="${k?'输入新密钥以替换':'粘贴 sk- 开头的 DeepSeek 密钥'}">
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm go" data-act="saveKey">保存密钥</button>${k?'<button class="btn sm" data-act="testKey">测试连接</button><button class="btn sm" data-act="clearKey">清除密钥</button>':''}<span id="keyTest" class="small muted" style="align-self:center"></span></div>
+    <label class="setrow" style="margin-top:8px">模型<select data-opt="ai">${Object.entries(AI_PRESETS).map(([v,o])=>`<option value="${v}" ${OPT.ai===v?'selected':''}>${o.label}</option>`).join('')}</select></label>
+  </div>
+  <div class="sec"><h4>数据</h4>
+    <div class="muted small" style="margin-bottom:8px">已记录 ${STATS.hands} 手、${HIST.length} 手复盘。数据只存在本机。</div>
+    <button class="btn sm" data-act="reset">清空统计和复盘</button>
+  </div>
+  <div class="muted small">德州教练 · ${IS_APP?'Android App':'网页版'}</div>`;
+}
+// ================= 胜率怎么算（分步说明） =================
+// ================= 概率怎么算（手算过程 + 速记） =================
+const r1=x=>(x*100).toFixed(1)+'%';
+// 返回 [[标题, [行...], 速记口诀key?], ...]，教练面板、复盘、问教练共用
+function probRows(A){
+  const rows=[], st=A.street;
+  if(A.toCall>0){
+    const pot=A.pot,c=A.toCall,ratio=pot/c;
+    rows.push(['底池赔率：我要多少胜率才能跟',[
+      `<b>百分比算法</b>：跟注额 ÷ (底池 + 跟注额) = ${c} ÷ (${pot} + ${c}) = ${c}/${pot+c} = <b>${pf(A.req)}</b>`,
+      `<b>比率算法</b>：底池 ${pot} : 跟注 ${c} = <b>${ratio.toFixed(1)} : 1</b> → 换成百分比 1 ÷ (${ratio.toFixed(1)} + 1) = ${pf(A.req)}`,
+      `两种算法结果一样，选你顺手的。`],'ratio']);
+  }
+  if(st>0&&st<3&&A.dr&&A.dr.outs){
+    const o=A.dr.outs, ratio=A.toCall>0?A.pot/A.toCall:0;
+    if(st===1){
+      const miss=(47-o)/47*(46-o)/46, two=1-miss, next=o/47, est=o*4-(o>8?o-8:0);
+      rows.push([`补牌概率：${o} 张 outs（${A.dr.text}）`,[
+        `<b>没见过的牌</b>：52 − 2 张手牌 − 3 张公共牌 = 47 张（对手的牌看不到，也算“没见过”）`,
+        `<b>下一张（转牌）就中</b>：${o} ÷ 47 = <b>${r1(next)}</b>`,
+        `<b>转牌、河牌都看到时至少中一张</b>：先算都不中 = ${47-o}/47 × ${46-o}/46 = ${r1(miss)}，所以至少中一张 = 1 − ${r1(miss)} = <b>${r1(two)}</b>`,
+        `<b>口算</b>：${o} × 4 = ${o*4}%${o>8?`，超过 8 张再减 ${o-8} → <b>${est}%</b>`:''}（精确 ${r1(two)}，差 ${Math.abs(est-two*100).toFixed(1)} 个点）；只看下一张用 ${o} × 2 = ${o*2}%（精确 ${r1(next)}）`,
+        A.toCall>0?`<b>和赔率比</b>：对手下注后通常转牌还会再下注，所以只拿“下一张”的 ${r1(next)} 去比。不中 : 中 = ${47-o} : ${o} ≈ <b>${((47-o)/o).toFixed(1)} : 1</b>，底池给你 ${ratio.toFixed(1)} : 1 → ${ratio>=(47-o)/o?'底池赔率够，跟注划算':'底池赔率不够，除非中了以后还能多赢（隐含赔率）'}。`
+          :`没人下注时，听牌的价值在于“下注也能赢（对手弃牌）+ 中了更能赢”，所以常用来半诈唬。`,
+        `⚠️ 有的 outs 不“干净”：比如你中了同花，对手可能是更大的同花。这种牌要打折算。`],o>8?'over8':'p42']);
+    }else{
+      const next=o/46;
+      rows.push([`补牌概率：${o} 张 outs（${A.dr.text}）`,[
+        `<b>没见过的牌</b>：52 − 2 − 4 = 46 张`,
+        `<b>河牌中</b>：${o} ÷ 46 = <b>${r1(next)}</b>`,
+        `<b>口算</b>：${o} × 2 = ${o*2}%；再加 1 更准：${o*2+1}%（精确 ${r1(next)}）`,
+        A.toCall>0?`<b>和赔率比</b>：不中 : 中 = ${46-o} : ${o} ≈ <b>${((46-o)/o).toFixed(1)} : 1</b>，底池给你 ${ratio.toFixed(1)} : 1 → ${ratio>=(46-o)/o?'赔率够，跟注划算':'赔率不够'}。`:''].filter(Boolean),'turn21']);
+    }
+  }
+  if(st===0){
+    const h=Math.max(cr(P[0].hole[0]),cr(P[0].hole[1])), l=Math.min(cr(P[0].hole[0]),cr(P[0].hole[1]));
+    const pair=h===l, suited=cs(P[0].hole[0])===cs(P[0].hole[1]);
+    const L=[];
+    if(pair) L.push(`<b>口袋对翻牌中三条</b>：剩下 50 张里只有 2 张能帮你。翻牌 3 张都不是 = 48/50 × 47/49 × 46/48 = 88.2%，所以中三条 = 1 − 88.2% = <b>11.8% ≈ 1/8</b>。中 1 次要赔 7 次跟注，所以搏三条要“十五倍”筹码才回本。`);
+    else L.push(`<b>翻牌至少配上一张</b>：能配对的牌有 6 张（每个点数各 3 张）。3 张都配不上 = 44/50 × 43/49 × 42/48 = 67.6%，所以配上 = <b>32.4% ≈ 1/3</b>；也就是 2/3 的时候你什么都没中。`);
+    if(suited) L.push(`<b>同花起手</b>：翻牌直接成同花 = 11/50 × 10/49 × 9/48 = <b>0.8%</b>；翻出同花听牌约 <b>10.9%</b>。同花只比不同花多约 2–3% 胜率。`);
+    L.push(`<b>人数的影响</b>：你现在面对 ${A.n} 个对手，大家平分时每人 ${pf(A.fair)}。人越多，同样一手牌的胜率越低（AA 对 1 人约 85%，对 4 人约 55%）。`);
+    rows.push(['翻牌前的关键概率',L,pair?'set8':A.n>=3?'crowd':suited?'suited':'flop13']);
+    if(A.mode==='vsRaise'||A.mode==='vs3bet'||A.mode==='allin')
+      rows.push(['常见单挑对决（记比例就够了）',['大对子 vs 小对子 ≈ <b>80 : 20</b>','被压制（AK vs AQ，共用一张 A）≈ <b>70 : 30</b>','对子 vs 两张高牌（77 vs AK）≈ <b>55 : 45</b>（抛硬币）','两张高牌 vs 两张低牌（AK vs 76）≈ <b>60 : 40</b>'],'matchups']);
+  }
+  if(st===3&&A.toCall===0&&A.rec&&A.rec.type==='raise'&&A.best){
+    const B=A.best.to-P[0].bet;
+    rows.push(['河牌下注：对手要多常弃牌你才赚',[`下注 ${B} 进底池 ${A.pot}：需要弃牌率 = ${B} ÷ (${A.pot} + ${B}) = <b>${pf(B/(A.pot+B))}</b>`,'下得越大，要求对手弃牌越多；对跟注站这个比例几乎达不到。'],'ratio']);
+  }
+  return rows;
+}
+function probCalcHTML(A){
+  const rows=probRows(A); if(!rows.length) return '';
+  return `<details class="sec explain" data-k="probOpen" ${OPT.probOpen!==false?'open':''}><summary>🧮 概率怎么算（手算过程 + 速记）</summary>${rows.map(([t,L,k])=>`<div class="step"><b>${t}</b><ul>${L.map(x=>`<li>${x}</li>`).join('')}</ul>${k&&TIPS[k]?`<div class="tips" style="margin-top:6px">🧠 <b>「${TIPS[k][0]}」</b> <span class="muted">${TIPS[k][1]}</span></div>`:''}</div>`).join('')}</details>`;
+}
+function eqExplainHTML(A){
+  const d=A.det; if(!d||!d.iters) return '';
+  const opp=A.live.map(j=>P[j]), N=d.iters;
+  let h=`<details class="sec explain" data-k="explainOpen" ${OPT.explainOpen!==false?'open':''}><summary>🔍 胜率是怎么算出来的（含对手胜率）</summary>`;
+  h+=`<div class="step"><b>① 估每个对手“可能拿什么牌”（范围）</b>`;
+  opp.forEach(q=>{h+=`<div class="oppr"><b>${q.name}</b>：${q.range<1?`前 ${pf(q.range)}　<code>${rangeText(q.range)}</code>`:'还没主动入池 → 任意两张牌都有可能'}${q.rangeWhy&&q.rangeWhy.length?`<ul>${q.rangeWhy.map(w=>`<li>${w}</li>`).join('')}</ul>`:''}</div>`;});
+  h+=`<div class="muted small">起手牌按 Chen 公式从强到弱排好（AA 第一，72o 最后），“前 X%”就是从最强往下数 X% 的牌。</div></div>`;
+  h+=`<div class="step"><b>② 随机模拟 ${N} 局</b><div>每一局：给每个对手从他的范围里随机抽两张牌，${G.board.length<5?`把剩下 ${5-G.board.length} 张公共牌随机发完，`:''}然后比大小，记下谁赢。</div>
+    <div class="simbar"><i class="w" style="width:${d.win/N*100}%"></i><i class="t" style="width:${d.tie/N*100}%"></i><i class="l" style="width:${d.lose/N*100}%"></i></div>
+    <div class="small">你赢 <b class="g-good">${d.win}</b> 局 · 平分 <b>${d.tie}</b> 局 · 输 <b class="g-bad">${d.lose}</b> 局</div>
+    <div>你的胜率 = (赢的局 + 平分时分到的份额) ÷ ${N} = <b>${pf(d.eq)}</b></div></div>`;
+  h+=`<div class="step"><b>③ 每个人各自的胜率</b><table class="evt"><tr><td class="muted">玩家</td><td class="muted">最终赢下底池</td>${d.cur?'<td class="muted">他范围里现在已领先你</td>':''}</tr>
+    <tr class="best"><td>你</td><td>${pf(d.eq)}</td>${d.cur?'<td>—</td>':''}</tr>
+    ${opp.map((q,k)=>`<tr><td>${q.name}</td><td>${pf(d.oppWin[k]/N)}</td>${d.cur?`<td>${pf(d.oppAhead[k]/N)}${d.oppTie[k]?` <span class="muted">（平 ${pf(d.oppTie[k]/N)}）</span>`:''}</td>`:''}</tr>`).join('')}</table>
+    <div class="muted small" style="margin-top:4px">“最终赢下”所有人加起来 = 100%。${d.cur?'“现在已领先”只看当前公共牌：他范围里已经比你大的牌占多少，其余要靠后面的牌反超。':'翻前还没有公共牌，所以只看最终结果。'}</div></div>`;
+  h+=`<div class="step"><b>④ 这个数怎么用</b><ul>`;
+  h+=`<li>平均水平：${A.n+1} 人分底池，平均每人 ${pf(A.fair)}。你 ${pf(A.eq)}，${A.eq>=A.fair*1.3?'明显高于平均':A.eq<=A.fair*.75?'明显低于平均':'接近平均'}。</li>`;
+  if(A.toCall>0) h+=`<li>和赔率比：跟注要求 ${pf(A.req)}，你 ${pf(A.eq)} ${A.eq>=A.req?'≥ 要求 → 单看赔率可以跟':'< 要求 → 单看赔率不够'}。</li>`;
+  if(A.dr&&A.dr.outs) h+=`<li>口算对照：${A.dr.outs} outs ${G.street===1?'×4':'×2'} ≈ ${A.dr.est}%（只是你补中的概率）。和模拟值不同，是因为补中了也可能输、没补中也可能赢。</li>`;
+  if(A.street===0) h+=`<li>翻前胜率差距本来就不大（AA 对一手随机牌也只有约 85%），所以翻前主要看范围和位置。</li>`;
+  h+=`</ul><div class="muted small">这是近似值：对手范围按风格和动作估计，真实底牌每次不同。复盘里有“对手真实底牌下你的胜率”可以对照。</div></div></details>`;
+  return h;
+}
+
+// ================= 实战口诀 =================
+const TIPS={
+  pos:['前紧后松','枪口只玩前 15% 的牌，庄位可以到前 45%。后面没说话的人越多，越要紧。'],
+  open:['要玩就加注','没人入池时只有两个选择：加注或弃牌，不要溜入。'],
+  odds:['半池四分一，满池三分一','对手下 1/3 池 → 你要 20%；半池 → 25%；满池 → 33%；2 倍池 → 40%。'],
+  p42:['4-2 法则：翻牌乘四，转牌乘二','outs × 4 ≈ 翻牌看到河牌的成牌率；outs × 2 ≈ 只看下一张的成牌率。'],
+  over8:['超八减超','outs 超过 8 张时 ×4 会高估：改用 outs×4 − (outs−8)。例：15 outs → 60 − 7 = 53%（精确 54.1%）。'],
+  turn21:['转牌乘二再加一','转牌圈 outs×2+1 更接近精确值：9 outs → 19%（精确 19.6%），8 outs → 17%（精确 17.4%）。'],
+  reverse:['算“中”不如算“不中”','至少中一次 = 1 − 每次都不中相乘。9 outs：1 − 38/47 × 37/46 = 35%。'],
+  ratio:['几比一，就是一份占几加一','赔率 a:1 换成百分比 = 1/(a+1)：2:1=33%，3:1=25%，4:1=20%，5:1=17%。'],
+  set8:['对子中三条，八次中一次','口袋对翻牌中三条约 11.8% ≈ 1/8：不中 7 次才中 1 次，所以搏三条要“十五倍”筹码。'],
+  flop13:['不配对，三次中一次','两张不同点数的牌，翻牌至少配上一张约 32% ≈ 1/3；另外 2/3 什么都没中。'],
+  suited:['同花只多两三点','同花起手比不同花只多约 2–3% 胜率；翻牌直接成同花 0.8%，翻出同花听牌约 11%。'],
+  matchups:['八二、七三、五五、六四','大对 vs 小对 80:20；被压制（AK vs AQ）70:30；对子 vs 两高张 55:45；高张 vs 低张 60:40。'],
+  crowd:['人越多，牌越要好','AA 对 1 人约 85%，对 4 人约 55%：多人底池会把胜率摊薄。'],
+  draws:['同花九，两头八，卡顺四','同花听 9 张、两头顺 8 张、卡顺 4 张、两张高牌 6 张、同花+两头顺 15 张（≈54%，比很多成牌还强）。'],
+  set:['小对搏三条，筹码十五倍','跟注额 × 15 ≤ 有效筹码，小对子才值得跟注去中三条（中的概率约 1/8）。'],
+  threebet:['被 3-bet 别逞强','面对再加注，QQ+/AK 才硬打；AJ、KQ 这类“好看的牌”最容易被压制。'],
+  domin:['杂色大牌怕加注','KJo、ATo 遇到加注容易被压制；76s 这类同花连张中了是大牌，没中就跑，更好打。'],
+  bb:['大盲防守看赔率','大盲已经投入 1BB，面对小加注只需补一点，胜率够赔率就跟。'],
+  value:['下注先问：谁会用更差的牌跟？','答得出来就价值下注；答不出来（只有更好的牌会跟）就过牌。'],
+  station:['跟注站不诈，紧弱多偷','松弱：只做价值、下大注；紧弱：多偷盲，他加注就让；松凶：用中等牌抓诈；紧凶：别没位置打大底池。'],
+  multi:['人多不诈，一对要怕','多人底池诈唬几乎不会成功，一对常常不够好。'],
+  river:['河牌无隐含，大注多是真','河牌没有后续牌，只看现在的胜率；多数玩家河牌下大注都是真有牌。'],
+  spr:['顶对不打光，SPR 小才放','有效筹码 ÷ 底池 < 3 时顶对可以全下；> 10 时顶对只控池。'],
+  cbet:['干燥小注，湿润慎打','你翻前加注、牌面干燥（如 K72 不同花）时，1/3 池持续下注常常直接赢。'],
+  semi:['听牌要主动','8 张以上 outs 的听牌，主动下注（半诈唬）比过牌好：对手弃牌你直接赢，被跟还能补中。'],
+  bluffmath:['诈唬要算弃牌率','下注 B 进底池 P，对手弃牌率要超过 B÷(P+B) 才赚：半池诈唬要 33%，满池要 50%。'],
+  sunk:['投进去的钱已经不是你的','之前的下注是沉没成本，每次只看“现在跟这一注划不划算”。'],
+  result:['看决策，不看结果','输了不等于打错。复盘只问：当时那个选择的期望值高不高？'],
+};
+const TIP_ORDER=['pos','open','domin','bb','set','threebet','odds','draws','semi','cbet','value','bluffmath','multi','station','spr','river','sunk','result'];
+const PROB_ORDER=['p42','over8','turn21','reverse','ratio','odds','set8','flop13','suited','matchups','crowd','draws'];
+function tipsFor(A){
+  const k=[];
+  if(A.street===0){
+    if(A.mode==='open') k.push(A.pct<=A.thr?'open':'pos');
+    else if(A.setMine) k.push('set');
+    else if(A.mode==='vs3bet') k.push('threebet');
+    else if(A.mode==='allin') k.push('sunk');
+    else if(A.pos==='BB') k.push('bb');
+    else k.push('domin');
+    if(A.toCall>0&&A.mode!=='open') k.push('odds');
+  }else{
+    if(A.toCall>0) k.push('odds');
+    if(A.dr&&A.dr.outs>=4&&A.street<3) k.push(A.toCall>0?'draws':'semi');
+    if(A.cbetSpot) k.push('cbet');
+    if(A.rec.type==='raise') k.push(A.eq<.4?'bluffmath':'value');
+    if(A.n>=2) k.push('multi');
+    if(A.street===3) k.push('river');
+    if(A.spr>0&&A.spr<3&&A.hd&&A.hd.cat>=1) k.push('spr');
+    if(P.some((q,j)=>j&&!q.folded&&q.style&&q.style.fold<.2)) k.push('station');
+  }
+  const out=[...new Set(k)].slice(0,2);
+  // 概率速记取最具体的一条（听牌 > 赔率）
+  const pr=probRows(A).map(r=>r[2]).reverse().find(x=>x&&!out.includes(x)); if(pr) out.push(pr);
+  return out.map(x=>TIPS[x]);
+}
+function tipsLine(A){
+  if(!A.tips||!A.tips.length) return '';
+  return `<div class="tips">${A.tips.map(t=>`<div>💡 <b>「${t[0]}」</b> <span class="muted">${t[1]}</span></div>`).join('')}</div>`;
+}
+
+// ================= 速算练习 =================
+const QZ=Object.assign({n:0,ok:0,streak:0,best:0},LS.get('pk_quiz',{}));
+let QUIZ=null;
+const pick=a=>a[(Math.random()*a.length)|0];
+function optsAround(c,unit){
+  const pool=[c-15,c-10,c-6,c+6,c+10,c+15,c-20,c+20].filter(v=>v>=2&&v<=96&&Math.abs(v-c)>=4);
+  const ch=[]; while(ch.length<3&&pool.length){ch.push(pool.splice((Math.random()*pool.length)|0,1)[0]);}
+  const all=[c,...ch].sort((a,b)=>a-b);
+  return {opts:all.map(v=>v+unit),ans:all.indexOf(c)};
+}
+function makeQuiz(){
+  const t=pick(['odds','odds','outs','outs','ratio','pf','pos','pos','set','bluff']);
+  if(t==='ratio'){
+    const a=pick([1,1.5,2,2.5,3,4,5,6,9]), ans=Math.round(100/(a+1)), o=optsAround(ans,'%');
+    return {tag:'赔率换算',q:`底池给你 ${a} : 1 的赔率，相当于需要多少胜率？`,...o,exp:`1 ÷ (${a} + 1) ≈ ${ans}%。`,tip:TIPS.ratio};
+  }
+  if(t==='pf'){
+    const z=pick([
+      ['你拿口袋对 66，翻牌中三条（或更好）的概率大约是？',12,'剩下 50 张里只有 2 张能帮你：1 − 48/50 × 47/49 × 46/48 ≈ 11.8%。',TIPS.set8],
+      ['你拿 AK（不是对子），翻牌至少配上一张的概率大约是？',32,'6 张能配对：1 − 44/50 × 43/49 × 42/48 ≈ 32.4%。',TIPS.flop13],
+      ['77 对 AK 全下，77 大约多少胜率？',55,'对子 vs 两张高牌 ≈ 55:45，接近抛硬币。',TIPS.matchups],
+      ['AK 对 AQ 全下，AK 大约多少胜率？',70,'被压制（共用一张 A）≈ 70:30（精确约 74%）。',TIPS.matchups],
+      ['KK 对 77 全下，KK 大约多少胜率？',80,'大对子 vs 小对子 ≈ 80:20。',TIPS.matchups],
+      ['AA 对 4 个对手（都拿随机牌），大约多少胜率？',55,'人越多胜率越低：对 1 人约 85%，对 4 人约 55%。',TIPS.crowd],
+    ]);
+    return {tag:'翻前概率',q:z[0],...optsAround(z[1],'%'),exp:z[2],tip:z[3]};
+  }
+  if(t==='odds'){
+    const P_=pick([20,30,40,60,80,100,120,150]); const f=pick([[1/3,'1/3 池'],[1/2,'半池'],[2/3,'2/3 池'],[1,'满池'],[2,'2 倍池']]);
+    const B=Math.round(P_*f[0]), ans=B/(P_+2*B), o=optsAround(Math.round(ans*100),'%');
+    return {tag:'底池赔率',q:`底池 ${P_}，对手下注 ${B}（${f[1]}）。你至少要多少胜率才能跟？`,...o,
+      exp:`需要的胜率 = 跟注额 ÷ 跟注后的总底池 = ${B} ÷ (${P_}+${B}+${B}) ≈ ${Math.round(ans*100)}%。`,tip:TIPS.odds};
+  }
+  if(t==='outs'){
+    const dr=pick([['同花听牌',9],['两头顺听牌',8],['卡顺听牌',4],['两张高牌（中一张成顶对）',6],['同花 + 两头顺',15],['同花 + 卡顺',12],['口袋对等三条',2]]);
+    const flop=Math.random()<.6, ans=flop?Math.min(dr[1]*4-(dr[1]>8?dr[1]-8:0),95):dr[1]*2, o=optsAround(ans,'%');
+    return {tag:'Outs',q:`${flop?'翻牌圈':'转牌圈'}你有${dr[0]}（${dr[1]} 张 outs），${flop?'到河牌':'下一张'}大约多少概率成牌？`,...o,
+      exp:`${dr[1]} × ${flop?4:2}${flop&&dr[1]>8?` − ${dr[1]-8}（超过 8 张时减去多出的部分，修正高估）`:''} ≈ ${ans}%。`,tip:flop&&dr[1]>8?TIPS.over8:TIPS.p42};
+  }
+  if(t==='pos'){
+    const pos=pick(['UTG','MP','CO','BTN']), c=pick(SORTED.filter(x=>x.pct<.65)), ok=c.pct<=OPEN[pos];
+    return {tag:'翻前',q:`你在${POS_CN[pos]}（${pos}），前面都弃牌了，你拿 ${c.key}。怎么做？`,opts:['加注开池','弃牌'],ans:ok?0:1,
+      exp:`${c.key} 排在前 ${pf(c.pct)}，${POS_CN[pos]}开池范围约前 ${pf(OPEN[pos])} → ${ok?'加注':'弃牌'}。`,tip:TIPS.pos};
+  }
+  if(t==='set'){
+    const R=pick([6,8,10,12,15,20]), S=pick([60,100,150,200,300]), ok=R*15<=S, pr=pick(['22','44','55','66','77']);
+    return {tag:'搏三条',q:`对手加注到 ${R}，你拿 ${pr}，有效筹码 ${S}。适合跟注去搏三条吗？`,opts:['适合','不适合'],ans:ok?0:1,
+      exp:`${R} × 15 = ${R*15}，有效筹码 ${S} ${ok?'≥':'<'} ${R*15} → ${ok?'适合':'不适合'}。`,tip:TIPS.set};
+  }
+  const P_=pick([30,50,80,100]), f=pick([.5,.75,1]), B=Math.round(P_*f), ans=B/(P_+B), o=optsAround(Math.round(ans*100),'%');
+  return {tag:'诈唬',q:`河牌底池 ${P_}，你想诈唬下注 ${B}。对手至少要弃牌多少比例，你才不亏？`,...o,
+    exp:`需要的弃牌率 = 下注 ÷ (底池+下注) = ${B} ÷ ${P_+B} ≈ ${Math.round(ans*100)}%。对跟注站几乎达不到。`,tip:TIPS.bluffmath};
+}
+function quizHTML(){
+  if(!QUIZ) QUIZ=makeQuiz();
+  const z=QUIZ, done=z.picked!=null;
+  return `<div class="sec quiz"><h4>⚡ 速算练习 <span class="muted" style="font-weight:400">答对 ${QZ.ok}/${QZ.n} · 连对 ${QZ.streak} · 最高 ${QZ.best}</span></h4>
+    <div class="qq"><span class="qtag">${z.tag}</span> ${z.q}</div>
+    <div class="qopts">${z.opts.map((o,i)=>`<button data-act="qz:${i}" class="${done?(i===z.ans?'right':i===z.picked?'wrong':''):''}" ${done?'disabled':''}>${o}</button>`).join('')}</div>
+    ${done?`<div class="qexp"><b class="${z.picked===z.ans?'g-good':'g-bad'}">${z.picked===z.ans?'✓ 答对了':'✗ 答错了'}</b> ${z.exp}<br>💡 <b>「${z.tip[0]}」</b> <span class="muted">${z.tip[1]}</span></div>
+      <button class="btn sm go" data-act="qznext">下一题</button>`:''}</div>`;
+}
+function answerQuiz(i){
+  if(!QUIZ||QUIZ.picked!=null) return;
+  QUIZ.picked=i; QZ.n++; if(i===QUIZ.ans){QZ.ok++;QZ.streak++;QZ.best=Math.max(QZ.best,QZ.streak);}else{QZ.streak=0;buzz('bad');}
+  LS.set('pk_quiz',QZ);
+}
+function probHTML(){
+  const draws=[['口袋对 → 三条',2],['卡顺',4],['两张高牌',6],['两头顺',8],['同花听牌',9],['同花 + 卡顺',12],['同花 + 两头顺',15]];
+  const row=([n,o])=>{const two=1-(47-o)/47*(46-o)/46, est=o*4-(o>8?o-8:0);
+    return `<tr><td>${n}</td><td>${o}</td><td>${r1(two)} <span class="muted">≈${est}%</span></td><td>${r1(o/46)} <span class="muted">≈${o*2+1}%</span></td></tr>`;};
+  return `<div class="sec"><h4>🧠 概率速记（记住这些就够实战用）</h4>
+    ${PROB_ORDER.map(k=>`<div class="lesson"><b>「${TIPS[k][0]}」</b><p>${TIPS[k][1]}</p></div>`).join('')}
+    <div class="lesson"><b>常见听牌成牌率</b><table class="ptable" style="margin-top:6px"><tr><th>听牌</th><th>outs</th><th>翻牌→河牌（口算）</th><th>转牌→河牌（口算）</th></tr>${draws.map(row).join('')}</table></div>
+    <div class="lesson"><b>赔率 ↔ 百分比</b><table class="ptable" style="margin-top:6px"><tr><th>赔率</th><td>1:1</td><td>2:1</td><td>3:1</td><td>4:1</td><td>5:1</td></tr><tr><th>需要胜率</th><td>50%</td><td>33%</td><td>25%</td><td>20%</td><td>17%</td></tr></table></div>
+    <div class="lesson"><b>对手下注大小 → 你需要的胜率</b><table class="ptable" style="margin-top:6px"><tr><th>下注</th><td>1/4 池</td><td>1/3 池</td><td>半池</td><td>2/3 池</td><td>满池</td><td>2 倍池</td></tr><tr><th>需要</th><td>17%</td><td>20%</td><td>25%</td><td>29%</td><td>33%</td><td>40%</td></tr></table>
+      <p>公式：下注 ÷ (底池 + 2 × 下注)。</p></div></div>`;
+}
+function tipsHTML(){
+  return `<div class="sec"><h4>📌 实战口诀（打牌时最常用的 ${TIP_ORDER.length} 条）</h4>${TIP_ORDER.map(k=>`<div class="lesson"><b>「${TIPS[k][0]}」</b><p>${TIPS[k][1]}</p></div>`).join('')}</div>`;
+}
+function tabLearn(withChart){
+  const L=[
+    ['思考顺序','每次行动前按顺序问：①位置 ②对手风格和范围 ③底池赔率 ④我对他范围的胜率 ⑤这条街和下条街的计划。养成习惯后会变成直觉。'],
+    ...Object.values(CONCEPTS),
+    ['Outs 与 2/4 法则','能让你变成最好牌的剩余牌叫 outs。翻牌圈：outs × 4 ≈ 到河牌的成牌率；转牌圈：outs × 2 ≈ 下一张的成牌率。同花听牌 9 张（≈36%/18%），两头顺 8 张，卡顺 4 张。'],
+    ['SPR（筹码底池比）','有效筹码 ÷ 底池。SPR 小（<3）时顶对就可以打光；SPR 大（>10）时要两对以上才适合全部投入。'],
+    ['期望值 EV','EV = 赢的概率 × 能赢的钱 − 输的概率 × 会输的钱。德州是长期游戏：每次决策 EV 为正，短期输赢不重要。'],
+    ['结果导向的陷阱','输了不代表打错，赢了不代表打对。复盘时只问：以当时知道的信息，这个决定的期望值是不是最高？'],
+    ['对手类型调整','松弱（跟注站）：不诈唬，多价值下注、下大注。紧弱：多偷盲，他加注就尊重。松凶：用中等牌抓诈，让他自己犯错。紧凶：避免没位置和他打大底池。'],
+  ];
+  return quizHTML()+probHTML()+tipsHTML()+(withChart?tabChart():'')+`<div class="sec"><h4>📘 知识要点</h4>${L.map(([t,p])=>`<div class="lesson"><b>${t}</b><p>${p}</p></div>`).join('')}</div>`;
+}
+
+// ================= 问教练（走大模型，经本地 server.py 转发） =================
+const CHAT={msgs:LS.get('pk_chat',[]).slice(-20),busy:false,open:LS.get('pk_chat_open',true)};
+const strip=h=>String(h).replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ');
+const ct=c=>rn(cr(c))+SUITS[cs(c)];
+const esc=s=>s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+function chatContext(){
+  const L=[];
+  L.push('【应用设定】6人桌无限注德州，盲注1/2，每人起始200（100BB）。玩家是“你”。对手是电脑机器人，名字即风格：紧弱/松弱/紧凶/松凶/平衡。');
+  L.push('【工具如何算数】胜率=蒙特卡洛模拟（对每个对手按其风格×位置的起手牌范围抽牌，范围随动作收窄；翻后对手若主动下注，则未击中公共牌的牌只以较低概率保留）。起手牌排名用 Chen 公式。期望值是简化模型：只算到本街，被跟注时按更强的跟注范围折算胜率，弃牌率按对手风格和下注大小估计。这些是近似，不是GTO解算器。');
+  if(TAB==='review'&&HIST[REVIEW_SEL]){
+    const r=HIST[REVIEW_SEL];
+    L.push(`【用户正在复盘第${r.no}手】位置${r.pos}，底牌${r.hole.map(ct).join(' ')}，最终公共牌${r.board.map(ct).join(' ')||'无'}，结果${r.net}筹码，决策得分${r.score==null?'无':Math.round(r.score*100)}。`);
+    r.tl.forEach(s=>{L.push(`-- ${STREET[s.s]} ${s.board.map(ct).join(' ')} 底池${s.pot}`);s.acts.forEach(a=>{
+      if(a.h&&a.d!=null&&r.decisions[a.d]){const d=r.decisions[a.d];L.push(`  你：${d.act}｜评分${GT[d.g]}｜教练建议:${d.rec}｜决策时估算胜率${pf(d.eq)}${d.toCall?`(需要${pf(d.req)})`:''}${d.actual!=null?`｜对手真实底牌下胜率${pf(d.actual)}`:''}｜点评:${strip(d.note)}${d.opts?`｜各选项期望:${d.opts.map(o=>o.l+' '+fmt(o.ev)).join('，')}`:''}｜教练理由:${d.why.map(strip).join(' ')}`);}
+      else L.push(`  ${a.n} ${a.l}`);});});
+    if(r.sd) L.push('摊牌：'+r.sd.map(p=>`${p.me?'你':p.n} ${p.hole.map(ct).join(' ')} ${p.hn}`).join('；'));
+    if(r.fd.length) L.push('弃牌者底牌：'+r.fd.map(p=>`${p.n} ${p.hole.map(ct).join(' ')}`).join('；'));
+  }else if(G.handNo){
+    const me=P[0];
+    L.push(`【当前牌局·第${G.handNo}手】阶段${STREET[G.street]}，你的位置${POS_CN[posOf(0)]}(${posOf(0)})，底牌${me.hole.map(ct).join(' ')}，公共牌${G.board.map(ct).join(' ')||'无'}，底池${potTotal()}，你的筹码${me.stack}${G.over?'，本手已结束':''}。`);
+    L.push('对手：'+P.filter(q=>q.style).map(q=>`${q.name}(${q.style.tag}，${POS_CN[posOf(P.indexOf(q))]}，筹码${q.stack}${q.folded?'，已弃牌':''}${q.range<1?`，翻前范围约前${pf(q.range)} ${rangeText(q.range)}`:''}${q.last?`，最近动作:${q.last}`:''})`).join('；'));
+    if(G.over&&G.result&&G.result.type==='showdown') L.push('摊牌：'+G.result.cont.map(p=>`${p.name} ${p.hole.map(ct).join(' ')} ${handName(p.score)}`).join('；'));
+    L.push('行动记录：'+G.log.slice(-18).map(strip).join(' | '));
+    const A=G.analysis;
+    if(A&&!G.over){
+      L.push('【教练面板当前显示】建议：'+recText(A));
+      L.push('理由：'+A.why.map(strip).join(' '));
+      L.push('局面数据：'+A.lines.map(([k,v])=>k+'：'+strip(v)).join('；'));
+      if(A.opts) L.push('各选项期望值：'+A.opts.map(o=>`${o.label} ${fmt(o.ev)}${o.fe!=null?`(对手弃牌率${pf(o.fe)})`:''}`).join('，'));
+      if(A.det&&A.det.iters){const d=A.det;L.push(`胜率计算明细：模拟${d.iters}局，你赢${d.win}、平${d.tie}、输${d.lose}。`+A.live.map((j,k)=>`${P[j].name}：范围${P[j].range<1?'前'+pf(P[j].range):'任意牌'}（${(P[j].rangeWhy||[]).map(strip).join('；')||'未主动入池'}），最终赢下${pf(d.oppWin[k]/d.iters)}${d.cur?`，其范围中现在已领先你的占${pf(d.oppAhead[k]/d.iters)}`:''}`).join('；'));}
+      if(A.tips&&A.tips.length) L.push('面板上显示的口诀：'+A.tips.map(t=>t[0]).join('、'));
+      const pr=probRows(A); if(pr.length) L.push('面板上的概率手算过程：'+pr.map(([t,ls])=>t+'：'+ls.map(strip).join(' ')).join('｜'));
+      if(!G.revealed) L.push('注意：用户处于自测模式，尚未点开教练建议。如果用户还没做决定，先引导思考，不要直接给答案，除非明确要求。');
+    }
+    if(G.decisions.length) L.push('本手你已做的决策：'+G.decisions.map(d=>`${STREET[d.street]} ${d.act}(${GT[d.g]}；${strip(d.note)})`).join('；'));
+  }else L.push('【尚未开始任何牌局】');
+  return L.join('\n');
+}
+const CHAT_SYS=()=>`你是用户的德州扑克私人教练，用中文回答，简洁、具体、有数字，优先讲“为什么”（位置、对手范围、底池赔率、期望值、对手风格针对策略）。基于下面的牌局信息回答，不要编造牌局里没有的信息；涉及胜率/期望值时说明是工具的近似估算。若用户的想法有道理，肯定并指出适用条件；若错了，直接指出并给出改正思路。回答控制在 250 字以内，除非用户要求展开。可用少量 **加粗** 标记关键词。用户希望练成实战直觉：合适时在结尾给一句好记的口诀或速算方法（如“半池四分一，满池三分一”“翻牌乘四，转牌乘二”）。\n\n${chatContext()}`;
+function mdLite(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
+function renderChat(){
+  $('#chat').classList.toggle('closed',!CHAT.open);
+  $('#chatTog').textContent=CHAT.open?'收起':'展开';
+  const el=$('#chatMsgs'),nearBottom=el.scrollHeight-el.scrollTop-el.clientHeight<60;
+  el.innerHTML=CHAT.msgs.map(m=>`<div class="m ${m.e?'e':m.role==='user'?'u':'a'}">${m.role==='user'||m.e?esc(m.content):mdLite(m.content)||`<span class="muted">${m.think?`深度思考中…（已思考 ${m.think} 字）`:'思考中…'}</span>`}</div>`).join('');
+  if(nearBottom||CHAT.busy) el.scrollTop=el.scrollHeight;
+  const qs=TAB==='review'&&HIST[REVIEW_SEL]?['我这手最大的失误是什么？','如果换个打法会怎样？','对手可能有什么牌？']:G.analysis&&!G.over?['为什么这样建议？','对手的范围是怎么来的？','如果我弃牌/跟注/加注会怎样？']:['这手我哪里可以改进？','对手的范围是怎么算的？'];
+  $('#chatQs').innerHTML=qs.map(q=>`<button type="button">${q}</button>`).join('');
+  $('#chatQs').querySelectorAll('button').forEach(b=>b.onclick=()=>askCoach(b.textContent));
+  $('#chatGo').disabled=CHAT.busy;
+}
+async function askCoach(q){
+  q=(q||'').trim(); if(!q||CHAT.busy) return;
+  CHAT.open=true; CHAT.busy=true;
+  const hist=CHAT.msgs.filter(m=>!m.e&&m.content).slice(-8).map(m=>({role:m.role,content:m.content}));
+  CHAT.msgs.push({role:'user',content:q}); const out={role:'assistant',content:'',think:0}; CHAT.msgs.push(out); renderChat();
+  const fail=t=>{const i=CHAT.msgs.indexOf(out);if(i>=0)CHAT.msgs.splice(i,1,{role:'assistant',content:t,e:true});};
+  try{
+    const messages=[{role:'system',content:CHAT_SYS()},...hist,{role:'user',content:q}];
+    if(!OPT.dsKey&&IS_APP){fail('还没有设置 DeepSeek 密钥：点右上角 ⚙︎ → 问教练，粘贴密钥后保存。');throw 0;}
+    const res=OPT.dsKey?await aiFetch(messages,true):await fetch('/api/ask',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(aiBody(messages,true))});
+    if(!res.ok){const j=await res.json().catch(()=>({}));fail(typeof j.error==='string'?j.error:`DeepSeek 返回 ${res.status}：${(j.error&&j.error.message)||'请求失败'}${res.status===401?'（密钥无效）':res.status===402?'（账户余额不足）':''}`);}
+    else{
+      const rd=res.body.getReader(), dec=new TextDecoder(); let buf='';
+      for(;;){
+        const {done,value}=await rd.read(); if(done) break;
+        buf+=dec.decode(value,{stream:true}); const lines=buf.split('\n'); buf=lines.pop();
+        for(const ln of lines){
+          if(!ln.startsWith('data:')) continue;
+          const data=ln.slice(5).trim(); if(data==='[DONE]') continue;
+          let ev; try{ev=JSON.parse(data);}catch(e){continue;}
+          const dl=ev.choices&&ev.choices[0]&&ev.choices[0].delta; if(!dl) continue;
+          if(dl.reasoning_content){out.think+=dl.reasoning_content.length;renderChat();}
+          if(dl.content){out.content+=dl.content;renderChat();}
+        }
+      }
+      if(!out.content&&CHAT.msgs.includes(out)) fail('没有收到回复。');
+    }
+  }catch(e){ if(e!==0) fail(OPT.dsKey?'连不上 DeepSeek，请检查网络：'+e.message:'无法连接本地服务（在电脑上请通过 server.py 打开页面，或在设置里填入密钥直连）：'+e.message); }
+  CHAT.busy=false; LS.set('pk_chat',CHAT.msgs.filter(m=>!m.e).map(({role,content})=>({role,content})).slice(-20)); LS.set('pk_chat_open',CHAT.open); renderChat();
+}
+$('#chatForm').onsubmit=e=>{e.preventDefault();const v=$('#chatIn').value;$('#chatIn').value='';askCoach(v);};
+$('#chatIn').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();$('#chatForm').requestSubmit();}};
+$('#chatHd').onclick=()=>{CHAT.open=!CHAT.open;LS.set('pk_chat_open',CHAT.open);renderChat();};
+// 直连 DeepSeek（OpenAI 兼容格式；已确认允许 App 内跨域调用）
+function aiBody(messages,stream,maxTokens){
+  const pr=aiPreset();
+  return {model:pr.model,messages,stream,max_tokens:maxTokens||(pr.think?4000:1200),thinking:{type:pr.think?'enabled':'disabled'}};
+}
+function aiFetch(messages,stream,maxTokens){
+  return fetch('https://api.deepseek.com/chat/completions',{method:'POST',
+    headers:{'content-type':'application/json','authorization':'Bearer '+OPT.dsKey},
+    body:JSON.stringify(aiBody(messages,stream,maxTokens))});
+}
+async function testKey(){
+  const el=$('#keyTest'); if(el) el.textContent='测试中…';
+  try{
+    const r=await fetch('https://api.deepseek.com/chat/completions',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+OPT.dsKey},
+      body:JSON.stringify({model:'deepseek-flash',messages:[{role:'user',content:'只回复两个字：可以'}],max_tokens:10,stream:false,thinking:{type:'disabled'}})});
+    const j=await r.json().catch(()=>({}));
+    if(el) el.innerHTML=r.ok?'<span class="g-good">✓ 连接成功</span>':`<span class="g-bad">✗ ${r.status} ${esc((j.error&&j.error.message)||'')}</span>`;
+  }catch(e){ if(el) el.innerHTML=`<span class="g-bad">✗ 网络错误：${esc(e.message)}</span>`; }
+}
+function chatStatus(){
+  const st=$('#chatSt'), name='DeepSeek '+aiPreset().label.split('（')[0];
+  if(OPT.dsKey){st.textContent='· '+name;return;}
+  if(IS_APP){st.textContent='· 未设置密钥（⚙︎ 设置）';return;}
+  fetch('/api/status').then(r=>r.json()).then(j=>{st.textContent=j.hasKey?`· ${name}（本地服务）`:'· 未设置密钥（⚙︎ 设置）';}).catch(()=>{st.textContent='· 未设置密钥（⚙︎ 设置）';});
+}
+chatStatus();
+
+// ================= 设置与快捷键 =================
+function syncOpts(){$('#optHint').checked=OPT.hint; $('#optSpeed').value=String(OPT.speed);}
+syncOpts();
+$('#optHint').onchange=e=>{OPT.hint=e.target.checked;saveOpt();};
+$('#optSpeed').onchange=e=>{OPT.speed=+e.target.value;saveOpt();};
+// Android 返回键：整页 → 回牌桌；抽屉展开 → 收起；否则退到后台（不丢牌局）
+const CapApp=plug('App');
+if(CapApp) CapApp.addListener('backButton',()=>{
+  if(MOBILE&&VIEW!=='table') setView('table');
+  else if(MOBILE&&SHEET_OPEN){SHEET_OPEN=false;LS.set('pk_sheet',false);renderSheet();}
+  else CapApp.minimizeApp();
+});
+applyView();
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='TEXTAREA'||(e.target.tagName==='INPUT'&&e.target.type==='number')) return;
+  const k=e.key.toLowerCase();
+  if((k==='n'||k===' ')&&(G.over||!G.handNo)&&!G.running){e.preventDefault();playHand();return;}
+  if(!heroResolve) return;
+  const p=P[0], toCall=Math.min(G.cur-p.bet,p.stack);
+  if(k==='f'&&toCall>0) heroAct({type:'fold'});
+  else if(k==='c') heroAct({type:toCall===0?'check':'call'});
+  else if(k==='r'&&$('#bR')) heroAct({type:'raise',to:G.raiseTo});
+  else if(k==='h'){G.revealed=true;render();}
+  else if('1234'.includes(k)&&!G.revealed){G.guess=+k-1;renderTab();}
+});
+render();
+</script>
+</body>
+</html>

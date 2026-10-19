@@ -1,0 +1,24 @@
+# 依赖与构建产物
+node_modules/
+app/www/
+app/android/app/src/main/assets/public/
+app/android/app/src/main/assets/capacitor.config.json
+app/android/app/src/main/assets/capacitor.plugins.json
+app/android/capacitor-cordova-android-plugins/
+*.apk
+*.aab
+
+# 本机配置与密钥（绝不能提交）
+local.properties
+*.keystore
+*.jks
+deepseek_key.txt
+anthropic_key.txt
+.env*
+
+# 个人文件
+Archive.zip
+.DS_Store
+.idea/
+.vscode/
+.claude/

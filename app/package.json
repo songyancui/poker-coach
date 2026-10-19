@@ -1,0 +1,17 @@
+{
+  "name": "poker-coach",
+  "version": "1.0.0",
+  "description": "德州教练：边打边学的德州扑克训练工具（Android 打包工程）",
+  "scripts": {
+    "sync": "mkdir -p www && cp ../index.html www/index.html && npx cap sync android"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/haptics": "^8.0.2"
+  },
+  "private": true
+}
